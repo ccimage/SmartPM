@@ -176,6 +176,11 @@ export class TaskService {
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
+  // exposed for CommentService
+  async loadTaskForComment(taskId: string): Promise<Task> {
+    return this.loadTask(taskId);
+  }
+
   private async loadTask(taskId: string): Promise<Task> {
     const task = await this.taskRepo.findOne({
       where: { id: taskId, deletedAt: IsNull() },
