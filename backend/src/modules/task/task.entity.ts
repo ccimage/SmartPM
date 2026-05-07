@@ -30,7 +30,7 @@ export class Task {
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ name: 'parent_id', nullable: true })
+  @Column({ name: 'parent_id', type: 'uuid', nullable: true })
   parentId: string | null;
 
   @ManyToOne(() => Task, (t) => t.subtasks, { nullable: true, onDelete: 'CASCADE' })
@@ -52,7 +52,7 @@ export class Task {
   @Column({ length: 20, default: 'normal' })
   priority: TaskPriority;
 
-  @Column({ name: 'assignee_id', nullable: true })
+  @Column({ name: 'assignee_id', type: 'uuid', nullable: true })
   assigneeId: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })

@@ -22,6 +22,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const payload = this.jwtService.verify(token);
       client.data.userId = payload.sub;
+      client.join(`user:${payload.sub as string}`);
     } catch {
       client.disconnect();
     }
@@ -47,5 +48,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       this.server.emit(event, payload);
     }
+  }
+
+  emitToUser(userId: string, event: string, payload: unknown) {
+    this.server.to(`user:${userId}`).emit(event, payload);
   }
 }

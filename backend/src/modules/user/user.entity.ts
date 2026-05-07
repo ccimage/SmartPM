@@ -20,7 +20,7 @@ export class User {
   @Column({ length: 100 })
   name: string;
 
-  @Column({ name: 'avatar_url', length: 500, nullable: true })
+  @Column({ name: 'avatar_url', type: 'varchar', length: 500, nullable: true })
   avatarUrl: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

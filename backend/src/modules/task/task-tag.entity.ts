@@ -24,7 +24,7 @@ export class TaskTag {
   @Column({ length: 50 })
   name: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   color: string | null;
 
   @ManyToMany(() => Task, (task) => task.tags)
