@@ -1,10 +1,10 @@
 {
-  "name": "backend",
+  "name": "smart-pm-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Smart PM, an open source project of Project Management System",
+  "author": "ccimage",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL3.0",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
