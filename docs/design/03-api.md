@@ -86,6 +86,17 @@ Content-Type: application/json
 
 ## 二、Auth 模块
 
+### Admin 初始化（启动时自动执行）
+
+系统启动时检查 `users` 表是否为空。若为空，自动创建超级管理员账号：
+
+- **邮箱**：`admin@smartpm.com`
+- **密码**：随机生成 12 位（含大小写字母+数字），在控制台/日志输出一次
+- **姓名**：`Admin`
+- 实现位置：`UserModule` 的 `OnModuleInit` 钩子
+
+---
+
 ### 注册
 
 ```
