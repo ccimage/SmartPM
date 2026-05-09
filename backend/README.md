@@ -1,98 +1,131 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# SmartPM Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+SmartPM 后端服务，基于 NestJS + TypeScript 构建，提供项目管理核心 API 及 AI 增强能力。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 技术栈
 
-## Description
+- **框架**: NestJS (Node.js + TypeScript)
+- **数据库**: PostgreSQL + TypeORM
+- **缓存**: Redis
+- **消息队列**: NSQ
+- **文件存储**: RustFS (S3 兼容)
+- **实时通信**: Socket.io (WebSocket)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 模块
 
-## Project setup
+| 模块 | 路径 | 说明 |
+|------|------|------|
+| Auth | `/api/v1/auth` | 注册、登录、JWT 刷新 |
+| User | `/api/v1/users` | 用户信息管理 |
+| Workspace | `/api/v1/workspaces` | 工作区 CRUD + 成员管理 |
+| Project | `/api/v1/projects` | 项目 CRUD + 成员管理 |
+| Task | `/api/v1/tasks` | 任务 CRUD + 子任务 + 标签 |
+| Comment | `/api/v1/comments` | 评论 CRUD + @提及 |
+| File | `/api/v1/files` | 文件上传 + 附件关联 |
+| Notification | `/api/v1/notifications` | 通知列表 + 已读管理 |
+| AI | `/api/v1/ai` | 任务生成 / 需求拆分 / 日报总结 |
 
-```bash
-$ npm install
-```
+## 快速开始
 
-## Compile and run the project
+### 环境要求
 
-```bash
-# development
-$ npm run start
+- Node.js >= 20
+- PostgreSQL >= 15
+- Redis >= 7
+- NSQ
+- RustFS（或任意 S3 兼容存储）
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+### 安装依赖
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
+### 环境变量
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+复制 `.env.example` 并填写配置：
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+关键配置项：
 
-## Resources
+```env
+# 数据库
+DATABASE_URL=postgresql://user:pass@localhost:5432/smartpm
 
-Check out a few resources that may come in handy when working with NestJS:
+# Redis
+REDIS_URL=redis://localhost:6379
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# JWT
+JWT_SECRET=your-secret
+JWT_EXPIRES_IN=7d
 
-## Support
+# NSQ
+NSQ_HOST=localhost
+NSQ_PORT=4150
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# 文件存储 (S3 兼容)
+STORAGE_ENDPOINT=http://localhost:9000
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+STORAGE_BUCKET=smartpm
 
-## Stay in touch
+# AI
+LLM_API_KEY=your-api-key
+LLM_MODEL=claude-sonnet-4-6
+LLM_TIMEOUT_MS=30000
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 启动
 
-## License
+```bash
+# 开发模式（热重载）
+npm run start:dev
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# 生产模式
+npm run build
+npm run start:prod
+```
+
+### 测试
+
+```bash
+npm run test
+npm run test:e2e
+npm run test:cov
+```
+
+### 代码检查
+
+```bash
+npm run lint
+npm run format
+```
+
+## 项目结构
+
+```
+src/
+├── common/          # 全局过滤器、拦截器、装饰器、Guard
+├── infra/           # 基础设施（DB、Redis、NSQ、WebSocket）
+├── modules/         # 业务模块
+│   ├── auth/
+│   ├── user/
+│   ├── workspace/
+│   ├── project/
+│   ├── task/
+│   ├── comment/
+│   ├── file/
+│   ├── notification/
+│   └── ai/
+├── app.module.ts
+└── main.ts
+```
+
+## API 文档
+
+完整 API 设计见 `../docs/design/03-api.md`。
+
+启动后访问 Swagger UI：`http://localhost:3000/api/docs`（如已启用）。

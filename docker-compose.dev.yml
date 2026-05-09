@@ -39,5 +39,26 @@ services:
     depends_on:
       - nsqlookupd
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: smartpm
+      MINIO_ROOT_PASSWORD: smartpm123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "until mc alias set local http://minio:9000 smartpm smartpm123; do sleep 2; done; mc mb --ignore-existing local/smartpm; mc anonymous set download local/smartpm"
+    restart: on-failure
+
 volumes:
   pg_data:
+  minio_data:
