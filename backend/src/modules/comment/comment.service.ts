@@ -5,6 +5,7 @@ import { Comment } from './comment.entity';
 import { TaskService } from '../task/task.service';
 import { ProjectService } from '../project/project.service';
 import { UserService } from '../user/user.service';
+import { ActivityPublisherService } from '../activity/activity-publisher.service';
 import { CreateCommentDto, ListCommentsQueryDto, UpdateCommentDto } from './dto/comment.dto';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class CommentService {
     private readonly taskService: TaskService,
     private readonly projectService: ProjectService,
     private readonly userService: UserService,
+    private readonly publisher: ActivityPublisherService,
   ) {}
 
   async list(taskId: string, userId: string, query: ListCommentsQueryDto) {
@@ -62,6 +64,14 @@ export class CommentService {
         extra: mentionIds.length ? { mentions: mentionIds } : null,
       }),
     );
+    this.publishActivity({
+      taskId,
+      userId,
+      action: 'comment.added',
+      entityType: 'comment',
+      entityId: comment.id,
+      extra: { taskId: comment.taskId },
+    });
 
     const author = await this.userService.findById(userId);
     const mentions = await this.resolveMentions(mentionIds);
@@ -102,6 +112,14 @@ export class CommentService {
     }
 
     await this.commentRepo.softDelete(commentId);
+    this.publishActivity({
+      taskId: comment.taskId,
+      userId,
+      action: 'comment.deleted',
+      entityType: 'comment',
+      entityId: commentId,
+      extra: { taskId: comment.taskId },
+    });
   }
 
   // ── helpers ──────────────────────────────────────────────────────────────
@@ -118,5 +136,32 @@ export class CommentService {
     return users
       .filter((u): u is NonNullable<typeof u> => u !== null)
       .map((u) => ({ id: u.id, name: u.name }));
+  }
+
+  private async getWorkspaceId(taskId: string): Promise<string> {
+    const task = await this.taskService.loadTaskForComment(taskId);
+    return this.projectService.getProjectWorkspaceId(task.projectId);
+  }
+
+  private publishActivity(params: {
+    taskId: string;
+    userId: string;
+    action: string;
+    entityType: string;
+    entityId: string;
+    extra?: Record<string, unknown>;
+  }) {
+    void this.getWorkspaceId(params.taskId)
+      .then((workspaceId) =>
+        this.publisher.publish({
+          workspaceId,
+          userId: params.userId,
+          action: params.action,
+          entityType: params.entityType,
+          entityId: params.entityId,
+          extra: params.extra,
+        }),
+      )
+      .catch(() => {});
   }
 }

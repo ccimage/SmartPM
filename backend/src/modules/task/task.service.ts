@@ -9,6 +9,7 @@ import { IsNull, Repository } from 'typeorm';
 import { Task } from './task.entity';
 import { TaskTag } from './task-tag.entity';
 import { ProjectService } from '../project/project.service';
+import { ActivityPublisherService } from '../activity/activity-publisher.service';
 import {
   CreateTagDto,
   CreateTaskDto,
@@ -25,6 +26,7 @@ export class TaskService {
     @InjectRepository(TaskTag)
     private readonly tagRepo: Repository<TaskTag>,
     private readonly projectService: ProjectService,
+    private readonly publisher: ActivityPublisherService,
   ) {}
 
   async create(projectId: string, userId: string, dto: CreateTaskDto) {
@@ -42,6 +44,14 @@ export class TaskService {
         parentId: dto.parentId ?? null,
       }),
     );
+    this.publishActivity({
+      projectId,
+      userId,
+      action: 'task.created',
+      entityType: 'task',
+      entityId: task.id,
+      extra: { title: task.title },
+    });
     return this.toDetail(task);
   }
 
@@ -116,8 +126,52 @@ export class TaskService {
   async update(taskId: string, userId: string, dto: UpdateTaskDto) {
     const task = await this.loadTask(taskId);
     await this.projectService.requireProjectMember(task.projectId, userId);
+    const before = {
+      status: task.status,
+      priority: task.priority,
+      assigneeId: task.assigneeId,
+      title: task.title,
+    };
     await this.taskRepo.update(taskId, dto);
     const updated = await this.taskRepo.findOneOrFail({ where: { id: taskId } });
+    const after = {
+      status: updated.status,
+      priority: updated.priority,
+      assigneeId: updated.assigneeId,
+      title: updated.title,
+    };
+
+    this.publishActivity({
+      projectId: task.projectId,
+      userId,
+      action: 'task.updated',
+      entityType: 'task',
+      entityId: taskId,
+      extra: { before, after },
+    });
+
+    if (dto.status !== undefined && dto.status !== task.status) {
+      this.publishActivity({
+        projectId: task.projectId,
+        userId,
+        action: 'task.status_changed',
+        entityType: 'task',
+        entityId: taskId,
+        extra: { before: { status: task.status }, after: { status: dto.status } },
+      });
+    }
+
+    if (dto.assigneeId !== undefined && dto.assigneeId !== task.assigneeId) {
+      this.publishActivity({
+        projectId: task.projectId,
+        userId,
+        action: 'task.assigned',
+        entityType: 'task',
+        entityId: taskId,
+        extra: { assigneeId: dto.assigneeId },
+      });
+    }
+
     return { id: updated.id, title: updated.title, status: updated.status, updatedAt: updated.updatedAt };
   }
 
@@ -128,6 +182,14 @@ export class TaskService {
     const subtasks = await this.taskRepo.find({ where: { parentId: taskId } });
     if (subtasks.length) await this.taskRepo.softDelete(subtasks.map((s) => s.id));
     await this.taskRepo.softDelete(taskId);
+    this.publishActivity({
+      projectId: task.projectId,
+      userId,
+      action: 'task.deleted',
+      entityType: 'task',
+      entityId: taskId,
+      extra: { title: task.title },
+    });
   }
 
   async listSubtasks(taskId: string, userId: string) {
@@ -188,6 +250,33 @@ export class TaskService {
     });
     if (!task) throw new NotFoundException('Task not found');
     return task;
+  }
+
+  private async getWorkspaceId(projectId: string): Promise<string> {
+    return this.projectService.getProjectWorkspaceId(projectId);
+  }
+
+  private publishActivity(params: {
+    projectId: string;
+    userId: string;
+    action: string;
+    entityType: string;
+    entityId: string;
+    extra?: Record<string, unknown>;
+  }) {
+    void this.getWorkspaceId(params.projectId)
+      .then((workspaceId) =>
+        this.publisher.publish({
+          workspaceId,
+          projectId: params.projectId,
+          userId: params.userId,
+          action: params.action,
+          entityType: params.entityType,
+          entityId: params.entityId,
+          extra: params.extra,
+        }),
+      )
+      .catch(() => {});
   }
 
   private toDetail(task: Task) {

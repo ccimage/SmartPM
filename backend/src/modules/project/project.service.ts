@@ -126,4 +126,10 @@ export class ProjectService {
     if (!roles.includes(m.role)) throw new ForbiddenException('Insufficient permissions');
     return m;
   }
+
+  async getProjectWorkspaceId(projectId: string): Promise<string> {
+    const project = await this.projectRepo.findOne({ where: { id: projectId } });
+    if (!project) throw new NotFoundException('Project not found');
+    return project.workspaceId;
+  }
 }
