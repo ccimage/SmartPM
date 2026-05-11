@@ -1,3 +1,4 @@
+import type { UserPreferences } from './user'
 import http from './http'
 
 export interface UserProfile {
@@ -5,6 +6,7 @@ export interface UserProfile {
   name: string
   email: string
   avatarUrl?: string | null
+  preferences: UserPreferences
 }
 
 export interface LoginResponse {

@@ -86,15 +86,37 @@ async function handleSubmit() {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  background: #f5f7fb;
+  position: relative;
   padding: 24px;
 }
 
+.login-page::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(160deg, rgba(248, 250, 252, 0.4), rgba(248, 250, 252, 0.22)),
+    var(--app-background-image),
+    radial-gradient(circle at top left, #eff6ff, #dbeafe 40%, #f8fafc);
+  background-position: center;
+  background-size: cover;
+  content: '';
+}
+
+.login-page::after {
+  position: absolute;
+  inset: 0;
+  background: var(--app-background-overlay);
+  content: '';
+}
+
 .login-panel {
+  position: relative;
+  z-index: 1;
   width: min(100%, 420px);
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
   padding: 32px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
 }
@@ -105,13 +127,13 @@ async function handleSubmit() {
 
 .login-heading p {
   margin: 0 0 8px;
-  color: #4f46e5;
+  color: var(--color-primary-text);
   font-weight: 700;
 }
 
 .login-heading h1 {
   margin: 0;
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 28px;
 }
 
@@ -123,21 +145,22 @@ async function handleSubmit() {
 label {
   display: grid;
   gap: 6px;
-  color: #374151;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
 input {
   width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  color: #111827;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.96);
   padding: 10px 12px;
 }
 
 input:focus {
-  border-color: #4f46e5;
-  outline: 3px solid #e0e7ff;
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-ring);
 }
 
 .error-message {
@@ -151,8 +174,8 @@ input:focus {
 
 button {
   border: 0;
-  border-radius: 8px;
-  background: #4f46e5;
+  border-radius: 12px;
+  background: var(--color-primary);
   color: #ffffff;
   padding: 11px 14px;
   font-weight: 700;
@@ -165,13 +188,13 @@ button:disabled {
 
 .login-footer {
   margin: 20px 0 0;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 14px;
   text-align: center;
 }
 
 .login-footer a {
-  color: #4f46e5;
+  color: var(--color-primary-text);
   font-weight: 700;
 }
 </style>

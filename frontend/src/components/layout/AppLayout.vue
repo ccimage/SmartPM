@@ -12,6 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 const displayName = computed(() => authStore.user?.name ?? authStore.user?.email ?? 'User')
+const userInitial = computed(() => displayName.value.slice(0, 1).toUpperCase())
 const workspaceId = computed(() => {
   const id = route.params.workspaceId ?? route.params.id
   return typeof id === 'string' ? id : ''
@@ -134,7 +135,11 @@ function handleLogout() {
         </div>
 
         <div class="user-actions">
-          <span class="user-name">{{ displayName }}</span>
+          <RouterLink class="profile-chip" to="/settings/profile">
+            <span class="avatar">{{ userInitial }}</span>
+            <span class="user-name">{{ displayName }}</span>
+          </RouterLink>
+          <RouterLink class="secondary-button" to="/settings/appearance">Appearance</RouterLink>
           <RouterLink class="secondary-button" to="/settings/password">Change password</RouterLink>
           <button class="secondary-button" type="button" @click="handleLogout">Logout</button>
         </div>
@@ -152,17 +157,25 @@ function handleLogout() {
   display: grid;
   min-height: 100vh;
   grid-template-columns: 240px 1fr;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.8)),
+    var(--app-background-image),
+    var(--color-bg-app);
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
 }
 
 .sidebar {
-  border-right: 1px solid #e5e7eb;
-  background: #ffffff;
+  border-right: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
   padding: 24px 18px;
 }
 
 .brand {
   margin-bottom: 28px;
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 700;
 }
@@ -173,15 +186,15 @@ function handleLogout() {
 }
 
 .nav-link {
-  border-radius: 8px;
-  color: #4b5563;
+  border-radius: 12px;
+  color: var(--color-text-secondary);
   padding: 10px 12px;
   font-weight: 600;
 }
 
 .nav-link.router-link-active {
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
 }
 
 .sub-link {
@@ -197,14 +210,15 @@ function handleLogout() {
   min-height: 76px;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(18px);
   padding: 16px 28px;
 }
 
 .eyebrow {
   margin: 0 0 2px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0;
@@ -213,7 +227,7 @@ function handleLogout() {
 
 h1 {
   margin: 0;
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 22px;
 }
 
@@ -223,16 +237,33 @@ h1 {
   gap: 14px;
 }
 
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
+  font-weight: 700;
+}
+
 .user-name {
-  color: #374151;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
 .secondary-button {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #374151;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--color-text-primary);
   padding: 8px 12px;
 }
 
@@ -250,7 +281,7 @@ h1 {
     align-items: center;
     justify-content: space-between;
     border-right: 0;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
     padding: 14px 18px;
   }
 
@@ -260,13 +291,14 @@ h1 {
 
   .header {
     align-items: flex-start;
+    flex-direction: column;
     gap: 12px;
     padding: 16px 18px;
   }
 
   .user-actions {
-    align-items: flex-end;
-    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 8px;
   }
 

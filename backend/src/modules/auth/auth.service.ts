@@ -19,7 +19,8 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = await this.userService.create({ email: dto.email, passwordHash, name: dto.name });
     const token = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { token, user: user.toProfile() };
+    const preferences = await this.userService.findPreferencesByUserId(user.id);
+    return { token, user: user.toProfile(preferences) };
   }
 
   async login(dto: LoginDto) {
@@ -30,12 +31,11 @@ export class AuthService {
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const token = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { token, user: user.toProfile() };
+    const preferences = await this.userService.findPreferencesByUserId(user.id);
+    return { token, user: user.toProfile(preferences) };
   }
 
   async getMe(userId: string) {
-    const user = await this.userService.findById(userId);
-    if (!user) throw new UnauthorizedException();
-    return user.toProfile();
+    return this.userService.getProfile(userId);
   }
 }

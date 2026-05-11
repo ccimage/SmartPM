@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { UserPreference } from './user-preference.entity';
 
 @Entity('users')
 export class User {
@@ -29,13 +30,19 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  toProfile() {
+  toProfile(preferences?: UserPreference | null) {
     return {
       id: this.id,
       email: this.email,
       name: this.name,
       avatarUrl: this.avatarUrl,
       createdAt: this.createdAt,
+      preferences: preferences?.toProfile() ?? {
+        themeColor: null,
+        backgroundImageUrl: null,
+        backgroundOverlay: 'medium',
+        useSystemTheme: false,
+      },
     };
   }
 }
