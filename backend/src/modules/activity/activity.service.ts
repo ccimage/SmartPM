@@ -45,9 +45,12 @@ export class ActivityService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    const lookupdAddresses = this.resolveLookupdAddresses();
+    const host = this.config.get<string>('NSQ_NSQD_HOST') ?? 'localhost';
+    const port = this.config.get<string>('NSQ_NSQD_PORT') ?? '4150';
+    const nsqdAddress = `${host}:${port}`;
+
     this.reader = new nsq.Reader('activity.log', 'activity-writer', {
-      lookupdHTTPAddresses: lookupdAddresses,
+      nsqdTCPAddresses: [nsqdAddress],
     });
 
     this.reader.on('message', (msg: nsq.Message) => {
@@ -61,7 +64,7 @@ export class ActivityService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.reader.connect();
-    this.logger.log(`Activity NSQ consumer connected: ${lookupdAddresses.join(', ')}`);
+    this.logger.log(`Activity NSQ consumer connected directly to nsqd: ${nsqdAddress}`);
   }
 
   onModuleDestroy() {
@@ -163,24 +166,5 @@ export class ActivityService implements OnModuleInit, OnModuleDestroy {
       })),
       meta: { page, limit, total },
     };
-  }
-
-  private resolveLookupdAddresses() {
-    const lookupdHttp =
-      this.config.get<string>('NSQ_LOOKUPD_HTTP') ??
-      this.config.get<string>('NSQ_LOOKUPD_HTTP_URL');
-
-    if (lookupdHttp) {
-      try {
-        const parsed = new URL(lookupdHttp);
-        return [`${parsed.hostname}:${parsed.port || '4161'}`];
-      } catch (error) {
-        this.logger.warn(`Invalid NSQ lookupd URL: ${lookupdHttp}`);
-      }
-    }
-
-    const host = this.config.get<string>('NSQ_HOST') ?? 'localhost';
-    const port = this.config.get<string>('NSQ_PORT') ?? '4161';
-    return [`${host}:${port}`];
   }
 }
