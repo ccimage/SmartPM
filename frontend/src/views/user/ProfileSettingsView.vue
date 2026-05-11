@@ -1,16 +1,134 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import type { AxiosError } from 'axios'
+import type { ApiErrorPayload } from '@/api/http'
+import { uploadFile } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
+const avatarInput = ref<HTMLInputElement | null>(null)
 const user = computed(() => authStore.user)
+const successMessage = ref('')
+const errorMessage = ref('')
+const isSaving = ref(false)
+const isUploading = ref(false)
+
+const form = reactive({
+  name: '',
+  email: '',
+  avatarUrl: null as string | null,
+  createdAt: '',
+})
+
+const displayInitial = computed(() => {
+  const source = form.name.trim() || form.email || 'U'
+  return source.slice(0, 1).toUpperCase()
+})
+
+const joinedAt = computed(() => {
+  if (!form.createdAt) {
+    return '-'
+  }
+
+  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(form.createdAt))
+})
+
+function syncFromUser() {
+  form.name = user.value?.name ?? ''
+  form.email = user.value?.email ?? ''
+  form.avatarUrl = user.value?.avatarUrl ?? null
+  form.createdAt = user.value?.createdAt ?? ''
+}
+
+function getErrorMessage(error: unknown) {
+  const axiosError = error as AxiosError<ApiErrorPayload>
+  const message = axiosError.response?.data?.message
+
+  if (Array.isArray(message)) {
+    return message.join(', ')
+  }
+
+  return message ?? 'Unable to update profile.'
+}
+
+function openAvatarPicker() {
+  avatarInput.value?.click()
+}
+
+async function handleAvatarSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  errorMessage.value = ''
+  successMessage.value = ''
+  isUploading.value = true
+
+  try {
+    const uploadResponse = await uploadFile(file)
+    await authStore.updateProfile({ avatarUrl: uploadResponse.data.url })
+    successMessage.value = 'Avatar updated.'
+  } catch (error) {
+    errorMessage.value = getErrorMessage(error)
+  } finally {
+    isUploading.value = false
+    input.value = ''
+  }
+}
+
+async function handleRemoveAvatar() {
+  if (!form.avatarUrl || isSaving.value || isUploading.value) {
+    return
+  }
+
+  errorMessage.value = ''
+  successMessage.value = ''
+  isSaving.value = true
+
+  try {
+    await authStore.updateProfile({ avatarUrl: null })
+    successMessage.value = 'Avatar removed.'
+  } catch (error) {
+    errorMessage.value = getErrorMessage(error)
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function handleSubmit() {
+  const name = form.name.trim()
+
+  if (!name) {
+    errorMessage.value = 'Name is required.'
+    successMessage.value = ''
+    return
+  }
+
+  errorMessage.value = ''
+  successMessage.value = ''
+  isSaving.value = true
+
+  try {
+    await authStore.updateProfile({ name })
+    successMessage.value = 'Profile updated.'
+  } catch (error) {
+    errorMessage.value = getErrorMessage(error)
+  } finally {
+    isSaving.value = false
+  }
+}
 
 function goBack() {
   router.back()
 }
+
+watch(user, syncFromUser, { immediate: true })
 </script>
 
 <template>
@@ -18,26 +136,103 @@ function goBack() {
     <div class="settings-header">
       <div>
         <h2>Profile</h2>
-        <p>Review the current account information and continue to appearance settings.</p>
+        <p>Update your display name, avatar, and account details used across SmartPM.</p>
       </div>
       <button class="secondary-button" type="button" @click="goBack">Back</button>
     </div>
 
-    <div class="settings-card">
-      <div class="avatar">{{ user?.name?.slice(0, 1).toUpperCase() ?? 'U' }}</div>
+    <div class="profile-layout">
+      <form class="settings-card profile-form" @submit.prevent="handleSubmit">
+        <div class="profile-hero">
+          <div class="avatar-shell">
+            <img v-if="form.avatarUrl" :src="form.avatarUrl" :alt="`${form.name || 'User'} avatar`" />
+            <span v-else>{{ displayInitial }}</span>
+          </div>
 
-      <div class="profile-grid">
-        <div>
-          <span class="label">Name</span>
-          <strong>{{ user?.name ?? '-' }}</strong>
-        </div>
-        <div>
-          <span class="label">Email</span>
-          <strong>{{ user?.email ?? '-' }}</strong>
-        </div>
-      </div>
+          <div class="profile-summary">
+            <p class="eyebrow">Account</p>
+            <h3>{{ form.name || 'Unnamed user' }}</h3>
+            <p>{{ form.email || 'No email' }}</p>
+            <small>Member since {{ joinedAt }}</small>
+          </div>
 
-      <RouterLink class="primary-link" to="/settings/appearance">Open appearance settings</RouterLink>
+          <div class="avatar-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              :disabled="isUploading"
+              @click="openAvatarPicker"
+            >
+              {{ isUploading ? 'Uploading...' : 'Upload avatar' }}
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              :disabled="!form.avatarUrl || isSaving || isUploading"
+              @click="handleRemoveAvatar"
+            >
+              Remove avatar
+            </button>
+            <input
+              ref="avatarInput"
+              class="hidden-input"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              @change="handleAvatarSelected"
+            />
+          </div>
+        </div>
+
+        <label>
+          <span>Display name</span>
+          <input
+            v-model="form.name"
+            type="text"
+            maxlength="100"
+            autocomplete="name"
+            placeholder="Your name"
+          />
+        </label>
+
+        <label>
+          <span>Email</span>
+          <input :value="form.email" type="email" disabled readonly />
+        </label>
+
+        <div class="actions">
+          <button class="primary-button" type="submit" :disabled="isSaving || isUploading">
+            {{ isSaving ? 'Saving...' : 'Save profile' }}
+          </button>
+          <RouterLink class="secondary-link" to="/settings/appearance">Appearance settings</RouterLink>
+          <RouterLink class="secondary-link" to="/settings/password">Change password</RouterLink>
+        </div>
+
+        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </form>
+
+      <aside class="settings-card detail-card">
+        <h3>Profile details</h3>
+
+        <div class="detail-grid">
+          <div>
+            <span class="label">Avatar status</span>
+            <strong>{{ form.avatarUrl ? 'Custom avatar active' : 'Initials fallback' }}</strong>
+          </div>
+          <div>
+            <span class="label">Display name</span>
+            <strong>{{ form.name || '-' }}</strong>
+          </div>
+          <div>
+            <span class="label">Email</span>
+            <strong>{{ form.email || '-' }}</strong>
+          </div>
+          <div>
+            <span class="label">Member since</span>
+            <strong>{{ joinedAt }}</strong>
+          </div>
+        </div>
+      </aside>
     </div>
   </section>
 </template>
@@ -46,7 +241,6 @@ function goBack() {
 .settings-page {
   display: grid;
   gap: 20px;
-  max-width: 760px;
 }
 
 .settings-header {
@@ -56,62 +250,119 @@ function goBack() {
   gap: 16px;
 }
 
-.settings-header h2 {
+.settings-header h2,
+.profile-summary h3,
+.detail-card h3 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 24px;
 }
 
-.settings-header p {
-  margin: 4px 0 0;
+.settings-header p,
+.profile-summary p,
+.profile-summary small {
+  margin: 0;
   color: var(--color-text-secondary);
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 20px;
 }
 
 .settings-card {
   display: grid;
   gap: 20px;
   border: 1px solid var(--color-border-default);
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--color-bg-panel);
   padding: 24px;
   box-shadow: 0 20px 44px rgba(15, 23, 42, 0.08);
 }
 
-.avatar {
+.profile-hero {
   display: grid;
-  width: 64px;
-  height: 64px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.avatar-shell {
+  display: grid;
+  width: 96px;
+  height: 96px;
   place-items: center;
-  border-radius: 20px;
+  overflow: hidden;
+  border-radius: 28px;
   background: var(--color-primary-soft);
   color: var(--color-primary-text);
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 700;
 }
 
-.profile-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+.avatar-shell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.profile-grid div {
+.profile-summary {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
+.eyebrow,
 .label {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.avatar-actions,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.avatar-actions {
+  justify-content: flex-end;
+}
+
+.hidden-input {
+  display: none;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
-strong {
+input {
+  width: 100%;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-panel);
   color: var(--color-text-primary);
+  padding: 11px 12px;
 }
 
-.primary-link,
-.secondary-button {
+input:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-ring);
+}
+
+input:disabled {
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--color-text-secondary);
+}
+
+.primary-button,
+.secondary-button,
+.secondary-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -120,25 +371,76 @@ strong {
   font-weight: 700;
 }
 
-.primary-link {
-  width: fit-content;
+.primary-button {
+  border: 0;
   background: var(--color-primary);
   color: #ffffff;
 }
 
-.secondary-button {
+.secondary-button,
+.secondary-link {
   border: 1px solid var(--color-border-default);
   background: var(--color-bg-panel);
   color: var(--color-text-primary);
 }
 
+.detail-card {
+  align-content: start;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.detail-grid div {
+  display: grid;
+  gap: 6px;
+}
+
+strong {
+  color: var(--color-text-primary);
+}
+
+.error-message,
+.success-message {
+  margin: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.success-message {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+@media (max-width: 980px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-hero {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .avatar-actions {
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 640px) {
   .settings-header {
     flex-direction: column;
-  }
-
-  .profile-grid {
-    grid-template-columns: 1fr;
   }
 }
 </style>

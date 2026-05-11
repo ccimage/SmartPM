@@ -54,7 +54,7 @@ export class UserService implements OnModuleInit {
     return this.repo.save(this.repo.create(data));
   }
 
-  async updateMe(id: string, data: { name?: string; avatarUrl?: string }): Promise<User> {
+  async updateMe(id: string, data: { name?: string; avatarUrl?: string | null }): Promise<User> {
     await this.repo.update(id, data);
     return this.repo.findOneOrFail({ where: { id } });
   }

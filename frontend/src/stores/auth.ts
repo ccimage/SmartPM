@@ -40,6 +40,13 @@ export const useAuthStore = defineStore('auth', () => {
     return response.data
   }
 
+  async function updateProfile(payload: authApi.UpdateMePayload) {
+    const response = await authApi.updateMe(payload)
+    user.value = response.data
+    themeStore.setPreferences(response.data.preferences)
+    return response.data
+  }
+
   function logout() {
     token.value = null
     user.value = null
@@ -54,5 +61,6 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchMe,
+    updateProfile,
   }
 })

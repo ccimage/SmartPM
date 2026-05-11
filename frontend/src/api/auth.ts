@@ -6,12 +6,18 @@ export interface UserProfile {
   name: string
   email: string
   avatarUrl?: string | null
+  createdAt?: string
   preferences: UserPreferences
 }
 
 export interface LoginResponse {
   token: string
   user: UserProfile
+}
+
+export interface UpdateMePayload {
+  name?: string
+  avatarUrl?: string | null
 }
 
 export function login(email: string, password: string) {
@@ -24,6 +30,10 @@ export function register(payload: { email: string; password: string; name: strin
 
 export function getMe() {
   return http.get<UserProfile>('/auth/me')
+}
+
+export function updateMe(payload: UpdateMePayload) {
+  return http.patch<UserProfile>('/users/me', payload)
 }
 
 export function changePassword(payload: { oldPassword: string; newPassword: string }) {

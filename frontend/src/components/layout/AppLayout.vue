@@ -12,6 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 const displayName = computed(() => authStore.user?.name ?? authStore.user?.email ?? 'User')
+const avatarUrl = computed(() => authStore.user?.avatarUrl ?? null)
 const userInitial = computed(() => displayName.value.slice(0, 1).toUpperCase())
 const workspaceId = computed(() => {
   const id = route.params.workspaceId ?? route.params.id
@@ -136,7 +137,10 @@ function handleLogout() {
 
         <div class="user-actions">
           <RouterLink class="profile-chip" to="/settings/profile">
-            <span class="avatar">{{ userInitial }}</span>
+            <span class="avatar">
+              <img v-if="avatarUrl" :src="avatarUrl" :alt="`${displayName} avatar`" />
+              <span v-else>{{ userInitial }}</span>
+            </span>
             <span class="user-name">{{ displayName }}</span>
           </RouterLink>
           <RouterLink class="secondary-button" to="/settings/appearance">Appearance</RouterLink>
@@ -248,10 +252,17 @@ h1 {
   width: 38px;
   height: 38px;
   place-items: center;
+  overflow: hidden;
   border-radius: 14px;
   background: var(--color-primary-soft);
   color: var(--color-primary-text);
   font-weight: 700;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-name {

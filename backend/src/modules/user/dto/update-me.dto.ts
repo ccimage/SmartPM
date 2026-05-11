@@ -9,5 +9,5 @@ export class UpdateMeDto {
   @IsOptional()
   @IsUrl()
   @MaxLength(500)
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
