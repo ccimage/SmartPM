@@ -24,7 +24,12 @@ http.interceptors.request.use((config) => {
 })
 
 http.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    if (response.data !== null && typeof response.data === 'object' && 'data' in response.data) {
+      response.data = response.data.data
+    }
+    return response
+  },
   (error: AxiosError<ApiErrorPayload>) => {
     const isPasswordChangeRequest = error.config?.url === '/users/me/password'
 
