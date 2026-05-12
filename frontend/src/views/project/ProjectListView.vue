@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createProject, listProjects, type Project } from '@/api/project'
+import IconPicker from '@/components/project/IconPicker.vue'
+import ProjectColorPicker from '@/components/project/ProjectColorPicker.vue'
 import { useAppStore } from '@/stores/app'
 
 const route = useRoute()
@@ -11,6 +13,10 @@ const appStore = useAppStore()
 const projects = ref<Project[]>([])
 const projectName = ref('')
 const projectDescription = ref('')
+const projectIcon = ref('code')
+const projectColor = ref('#4f46e5')
+const showIconPicker = ref(false)
+const showColorPicker = ref(false)
 const isLoading = ref(false)
 const isCreating = ref(false)
 const errorMessage = ref('')
@@ -53,11 +59,17 @@ async function handleCreateProject() {
     const description = projectDescription.value.trim()
     const response = await createProject(workspaceId.value, {
       name: projectName.value.trim(),
+      icon: projectIcon.value,
+      color: projectColor.value,
       ...(description ? { description } : {}),
     })
     projects.value = [response.data, ...projects.value]
     projectName.value = ''
     projectDescription.value = ''
+    projectIcon.value = 'code'
+    projectColor.value = '#4f46e5'
+    showIconPicker.value = false
+    showColorPicker.value = false
   } catch {
     errorMessage.value = 'Unable to create project.'
   } finally {
@@ -90,6 +102,29 @@ watch(workspaceId, loadProjects)
     <form class="create-form" @submit.prevent="handleCreateProject">
       <input v-model="projectName" type="text" placeholder="Project name" />
       <input v-model="projectDescription" type="text" placeholder="Description" />
+      <div class="project-style-controls">
+        <div class="icon-preview" :style="{ color: projectColor }">
+          <i :class="'fa-solid fa-' + projectIcon" />
+        </div>
+        <button type="button" class="picker-button" @click="showIconPicker = !showIconPicker">
+          选择图标
+        </button>
+        <button type="button" class="picker-button" @click="showColorPicker = !showColorPicker">
+          选择颜色
+        </button>
+      </div>
+      <IconPicker
+        v-if="showIconPicker"
+        v-model="projectIcon"
+        class="project-picker-panel"
+        @update:modelValue="showIconPicker = false"
+      />
+      <ProjectColorPicker
+        v-if="showColorPicker"
+        v-model="projectColor"
+        class="project-picker-panel"
+        @update:modelValue="showColorPicker = false"
+      />
       <button type="submit" :disabled="!canCreate || isCreating">
         {{ isCreating ? 'Creating...' : 'Create project' }}
       </button>
@@ -102,6 +137,7 @@ watch(workspaceId, loadProjects)
       <vxe-column field="name" title="Name" min-width="180">
         <template #default="{ row }">
           <button type="button" class="link-button" @click="openProject(row)">
+            <i :class="'fa-solid fa-' + row.icon" :style="{ color: row.color, marginRight: '8px' }" />
             {{ row.name }}
           </button>
         </template>
@@ -151,7 +187,7 @@ p {
 .create-form {
   display: grid;
   max-width: 820px;
-  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) auto auto;
   gap: 10px;
 }
 
@@ -174,6 +210,40 @@ button {
   padding: 10px 14px;
 }
 
+.project-style-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 18px;
+}
+
+.create-form .picker-button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.project-picker-panel {
+  grid-column: 1 / -1;
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
 button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -185,6 +255,8 @@ button:disabled {
   color: #4338ca;
   padding: 0;
   text-align: left;
+  display: inline-flex;
+  align-items: center;
 }
 
 .error-message {

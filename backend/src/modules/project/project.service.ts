@@ -24,7 +24,14 @@ export class ProjectService {
   async create(workspaceId: string, userId: string, dto: CreateProjectDto) {
     await this.workspaceService.requireMember(workspaceId, userId);
     const project = await this.projectRepo.save(
-      this.projectRepo.create({ workspaceId, name: dto.name, description: dto.description ?? null, createdBy: userId }),
+      this.projectRepo.create({
+        workspaceId,
+        name: dto.name,
+        description: dto.description ?? null,
+        icon: dto.icon ?? 'code',
+        color: dto.color ?? '#4f46e5',
+        createdBy: userId,
+      }),
     );
     await this.memberRepo.save(
       this.memberRepo.create({ projectId: project.id, userId, role: 'admin' }),
@@ -34,6 +41,8 @@ export class ProjectService {
       workspaceId: project.workspaceId,
       name: project.name,
       description: project.description,
+      icon: project.icon,
+      color: project.color,
       createdBy: project.createdBy,
       createdAt: project.createdAt,
     };
@@ -45,7 +54,15 @@ export class ProjectService {
     return Promise.all(
       projects.map(async (p) => {
         const memberCount = await this.memberRepo.count({ where: { projectId: p.id } });
-        return { id: p.id, name: p.name, description: p.description, memberCount, createdAt: p.createdAt };
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          icon: p.icon,
+          color: p.color,
+          memberCount,
+          createdAt: p.createdAt,
+        };
       }),
     );
   }
@@ -58,6 +75,8 @@ export class ProjectService {
       workspaceId: p.workspaceId,
       name: p.name,
       description: p.description,
+      icon: p.icon,
+      color: p.color,
       createdBy: p.createdBy,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -68,7 +87,7 @@ export class ProjectService {
     await this.requireProjectRole(projectId, userId, ['admin']);
     await this.projectRepo.update(projectId, dto);
     const p = await this.projectRepo.findOneOrFail({ where: { id: projectId } });
-    return { id: p.id, name: p.name, updatedAt: p.updatedAt };
+    return { id: p.id, name: p.name, icon: p.icon, color: p.color, updatedAt: p.updatedAt };
   }
 
   async remove(projectId: string, userId: string) {

@@ -3,6 +3,8 @@ import http from './http'
 export interface Project {
   id: string
   name: string
+  icon: string
+  color: string
   description?: string | null
   workspaceId?: string
   createdBy?: string
@@ -13,11 +15,15 @@ export interface Project {
 export interface CreateProjectPayload {
   name: string
   description?: string
+  icon?: string
+  color?: string
 }
 
 export interface UpdateProjectPayload {
   name?: string
   description?: string | null
+  icon?: string
+  color?: string
 }
 
 export function listProjects(workspaceId: string) {

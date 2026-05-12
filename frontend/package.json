@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^14.3.0",
     "axios": "^1.16.0",

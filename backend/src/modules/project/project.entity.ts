@@ -31,6 +31,12 @@ export class Project {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ length: 60, default: 'code' })
+  icon: string;
+
+  @Column({ length: 20, default: '#4f46e5' })
+  color: string;
+
   @Column({ name: 'created_by' })
   createdBy: string;
 
