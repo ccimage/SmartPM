@@ -54,9 +54,5 @@ export function uploadFile(file: File) {
   const formData = new FormData()
   formData.append('file', file)
 
-  return http.post<UploadedAsset>('/files/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
+  return http.post<UploadedAsset>('/files/upload', formData)
 }

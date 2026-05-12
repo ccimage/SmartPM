@@ -4,7 +4,7 @@ export const TOKEN_STORAGE_KEY = 'smartpm_token'
 
 export interface ApiErrorPayload {
   message?: string | string[]
-  error?: string
+  error?: string | { code: number; message: string }
   statusCode?: number
 }
 

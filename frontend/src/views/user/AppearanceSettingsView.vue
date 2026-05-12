@@ -42,13 +42,13 @@ function syncFromStore() {
 
 function getErrorMessage(error: unknown) {
   const axiosError = error as AxiosError<ApiErrorPayload>
-  const message = axiosError.response?.data?.message
-
-  if (Array.isArray(message)) {
-    return message.join(', ')
-  }
-
-  return message ?? 'Unable to save appearance settings.'
+  const data = axiosError.response?.data
+  const message = data?.message
+  if (Array.isArray(message)) return message.join(', ')
+  if (typeof message === 'string') return message
+  const nested = data?.error
+  if (nested && typeof nested === 'object' && 'message' in nested) return nested.message
+  return 'Unable to save appearance settings.'
 }
 
 function applyPreview() {
