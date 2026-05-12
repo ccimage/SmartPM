@@ -388,7 +388,27 @@ watch(workspaceId, () => {
             </span>
           </button>
 
-          <p v-if="taskCount(column.status) === 0" class="empty-column">No tasks.</p>
+          <div v-if="taskCount(column.status) === 0" class="empty-column">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect
+                x="4"
+                y="8"
+                width="24"
+                height="18"
+                rx="3"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path d="M4 13h24" stroke="currentColor" stroke-width="1.5" />
+              <path
+                d="M10 18h12M10 22h8"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span>No tasks yet</span>
+          </div>
         </div>
 
         <form
@@ -431,7 +451,9 @@ watch(workspaceId, () => {
             <input v-model="detailForm.title" class="title-input" type="text" />
           </div>
           <button class="close-button" type="button" aria-label="Close task details" @click="closeTask">
-            x
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
           </button>
         </header>
 
@@ -501,13 +523,13 @@ p {
 }
 
 h2 {
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 24px;
 }
 
 .board-toolbar p {
   margin-top: 4px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .board-grid {
@@ -523,30 +545,32 @@ h2 {
   max-height: calc(100vh - 190px);
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #f9fafb;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
 }
 
 .column-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
-  padding: 14px 14px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px 16px 0 0;
+  background: transparent;
+  padding: 16px 16px 12px;
 }
 
 h3 {
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 15px;
 }
 
 .count-badge {
   min-width: 26px;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -567,10 +591,11 @@ h3 {
   display: grid;
   gap: 8px;
   width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #374151;
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  background: var(--color-bg-panel);
+  color: var(--color-text-secondary);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   padding: 12px;
   text-align: left;
   transition:
@@ -581,8 +606,8 @@ h3 {
 
 .task-card:hover,
 .task-card.selected {
-  border-color: #6366f1;
-  box-shadow: 0 8px 20px rgb(17 24 39 / 8%);
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
 }
 
 .task-card.dragging {
@@ -590,7 +615,7 @@ h3 {
 }
 
 .task-title {
-  color: #111827;
+  color: var(--color-text-primary);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -605,7 +630,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #4b5563;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -615,47 +640,51 @@ h3 {
   height: 8px;
   flex: 0 0 auto;
   border-radius: 999px;
-  background: #9ca3af;
+  background: rgb(156 163 175);
 }
 
 .priority-low .priority-dot {
-  background: #9ca3af;
+  background: rgb(156 163 175);
 }
 
 .priority-normal .priority-dot {
-  background: #2563eb;
+  background: rgb(37 99 235);
 }
 
 .priority-high .priority-dot {
-  background: #f97316;
+  background: rgb(249 115 22);
 }
 
 .priority-urgent .priority-dot {
-  background: #dc2626;
+  background: rgb(220 38 38);
 }
 
 .card-line {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
 .due-date.overdue {
-  color: #dc2626;
+  color: rgb(185 28 28);
   font-weight: 700;
 }
 
 .empty-column {
-  color: #9ca3af;
-  font-size: 14px;
-  padding: 12px 4px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 12px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  opacity: 0.7;
 }
 
 .add-task-form {
   display: grid;
   gap: 10px;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff;
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-bg-panel);
   padding: 12px;
 }
 
@@ -666,10 +695,10 @@ h3 {
 .title-input {
   width: 100%;
   min-width: 0;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
   padding: 10px 12px;
 }
 
@@ -681,10 +710,10 @@ h3 {
 .add-task-button {
   width: calc(100% - 24px);
   margin: 0 12px 12px;
-  border: 1px dashed #c7d2fe;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #4338ca;
+  border: 1px dashed var(--color-primary);
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
   font-weight: 700;
   padding: 10px 12px;
 }
@@ -693,23 +722,23 @@ h3 {
 .primary-button {
   border: 0;
   border-radius: 8px;
-  background: #4f46e5;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-bg-panel);
   font-weight: 700;
   padding: 10px 14px;
 }
 
 .ghost-button {
-  border: 1px solid #d1d5db !important;
-  background: #ffffff !important;
-  color: #374151 !important;
+  border: 1px solid var(--color-border-default) !important;
+  background: var(--color-bg-panel) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .danger-button {
-  border: 1px solid #fecaca;
+  border: 1px solid rgba(220, 38, 38, 0.18);
   border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: rgba(254, 242, 242, 0.96);
+  color: rgb(185 28 28);
   font-weight: 700;
   padding: 10px 14px;
 }
@@ -727,14 +756,14 @@ button:disabled {
 }
 
 .loading-state {
-  background: #ffffff;
-  color: #6b7280;
+  background: var(--color-bg-panel);
+  color: var(--color-text-secondary);
 }
 
 .error-message,
 .form-error {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: rgba(254, 242, 242, 0.96);
+  color: rgb(185 28 28);
 }
 
 .form-error {
@@ -757,8 +786,9 @@ button:disabled {
   flex-direction: column;
   gap: 18px;
   overflow-y: auto;
-  background: #ffffff;
-  box-shadow: -16px 0 36px rgb(17 24 39 / 18%);
+  background: var(--color-bg-panel);
+  border-left: 1px solid var(--color-border-default);
+  box-shadow: -20px 0 48px rgba(15, 23, 42, 0.14);
   padding: 22px;
 }
 
@@ -770,26 +800,39 @@ button:disabled {
 
 .drawer-eyebrow {
   margin-bottom: 8px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .title-input {
-  color: #111827;
-  font-size: 21px;
+  border: none;
+  border-bottom: 2px solid var(--color-border-default);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 20px;
   font-weight: 800;
+  padding: 4px 0;
+}
+
+.title-input:focus {
+  border-bottom-color: var(--color-primary);
+  outline: none;
 }
 
 .close-button {
   width: 36px;
   height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #4b5563;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  background: var(--color-bg-panel);
+  color: var(--color-text-secondary);
+  padding: 0;
 }
 
 .drawer-fields {
@@ -803,7 +846,7 @@ button:disabled {
 }
 
 .drawer-fields span {
-  color: #374151;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
