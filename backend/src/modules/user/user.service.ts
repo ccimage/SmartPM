@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { createHash } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -38,25 +39,29 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  findByEmail(email: string): Promise<User | null> {
-    return this.repo.findOne({ where: { email } });
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.repo.findOne({ where: { email } });
+    return user ? this.withProfileSerializer(user) : null;
   }
 
-  findById(id: string): Promise<User | null> {
-    return this.repo.findOne({ where: { id } });
+  async findById(id: string): Promise<User | null> {
+    const user = await this.repo.findOne({ where: { id } });
+    return user ? this.withProfileSerializer(user) : null;
   }
 
   findPreferencesByUserId(userId: string): Promise<UserPreference | null> {
     return this.preferenceRepo.findOne({ where: { userId } });
   }
 
-  create(data: { email: string; passwordHash: string; name: string }): Promise<User> {
-    return this.repo.save(this.repo.create(data));
+  async create(data: { email: string; passwordHash: string; name: string }): Promise<User> {
+    const user = await this.repo.save(this.repo.create(data));
+    return this.withProfileSerializer(user);
   }
 
   async updateMe(id: string, data: { name?: string; avatarUrl?: string | null }): Promise<User> {
     await this.repo.update(id, data);
-    return this.repo.findOneOrFail({ where: { id } });
+    const user = await this.repo.findOneOrFail({ where: { id } });
+    return this.withProfileSerializer(user);
   }
 
   async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
@@ -81,7 +86,7 @@ export class UserService implements OnModuleInit {
     }
 
     const preferences = await this.findPreferencesByUserId(userId);
-    return user.toProfile(preferences);
+    return this.toProfile(user, preferences);
   }
 
   async getPreferences(userId: string) {
@@ -131,10 +136,37 @@ export class UserService implements OnModuleInit {
     return preference.toProfile();
   }
 
+  toProfile(user: User, preferences?: UserPreference | null) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      createdAt: user.createdAt,
+      preferences: preferences?.toProfile() ?? {
+        themeColor: null,
+        backgroundImageUrl: null,
+        backgroundOverlay: 'medium',
+        useSystemTheme: false,
+      },
+      gravatarUrl: this.gravatarUrl(user.email),
+    };
+  }
+
   private generatePassword(): string {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
     return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join(
       '',
     );
+  }
+
+  private gravatarUrl(email: string): string {
+    const hash = createHash('md5').update(email.trim().toLowerCase()).digest('hex');
+    return `https://www.gravatar.com/avatar/${hash}?s=200&d=mp`;
+  }
+
+  private withProfileSerializer(user: User): User {
+    user.toProfile = (preferences?: UserPreference | null) => this.toProfile(user, preferences);
+    return user;
   }
 }

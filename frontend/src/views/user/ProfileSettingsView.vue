@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import type { AxiosError } from 'axios'
 import type { ApiErrorPayload } from '@/api/http'
+import UserAvatar from '@/components/common/UserAvatar.vue'
 import { uploadFile } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
 
@@ -20,12 +21,8 @@ const form = reactive({
   name: '',
   email: '',
   avatarUrl: null as string | null,
+  gravatarUrl: null as string | null,
   createdAt: '',
-})
-
-const displayInitial = computed(() => {
-  const source = form.name.trim() || form.email || 'U'
-  return source.slice(0, 1).toUpperCase()
 })
 
 const joinedAt = computed(() => {
@@ -40,6 +37,7 @@ function syncFromUser() {
   form.name = user.value?.name ?? ''
   form.email = user.value?.email ?? ''
   form.avatarUrl = user.value?.avatarUrl ?? null
+  form.gravatarUrl = user.value?.gravatarUrl ?? null
   form.createdAt = user.value?.createdAt ?? ''
 }
 
@@ -144,10 +142,14 @@ watch(user, syncFromUser, { immediate: true })
     <div class="profile-layout">
       <form class="settings-card profile-form" @submit.prevent="handleSubmit">
         <div class="profile-hero">
-          <div class="avatar-shell">
-            <img v-if="form.avatarUrl" :src="form.avatarUrl" :alt="`${form.name || 'User'} avatar`" />
-            <span v-else>{{ displayInitial }}</span>
-          </div>
+          <UserAvatar
+            :name="form.name"
+            :email="form.email"
+            :avatar-url="form.avatarUrl"
+            :gravatar-url="user?.gravatarUrl"
+            :size="96"
+            style="border-radius: 28px"
+          />
 
           <div class="profile-summary">
             <p class="eyebrow">Account</p>
@@ -285,25 +287,6 @@ watch(user, syncFromUser, { immediate: true })
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 18px;
-}
-
-.avatar-shell {
-  display: grid;
-  width: 96px;
-  height: 96px;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 28px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-text);
-  font-size: 34px;
-  font-weight: 700;
-}
-
-.avatar-shell img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .profile-summary {

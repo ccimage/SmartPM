@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUrl, MaxLength, ValidateIf } from 'class-validator';
 
 export class UpdateMeDto {
   @IsOptional()
@@ -7,6 +7,7 @@ export class UpdateMeDto {
   name?: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.avatarUrl !== null)
   @IsUrl()
   @MaxLength(500)
   avatarUrl?: string | null;

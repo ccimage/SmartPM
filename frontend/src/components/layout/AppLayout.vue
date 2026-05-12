@@ -3,6 +3,7 @@ import { computed, onMounted, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { getProject } from '@/api/project'
 import { getWorkspace } from '@/api/workspace'
+import UserAvatar from '@/components/common/UserAvatar.vue'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 
@@ -12,8 +13,6 @@ const route = useRoute()
 const router = useRouter()
 
 const displayName = computed(() => authStore.user?.name ?? authStore.user?.email ?? 'User')
-const avatarUrl = computed(() => authStore.user?.avatarUrl ?? null)
-const userInitial = computed(() => displayName.value.slice(0, 1).toUpperCase())
 const workspaceId = computed(() => {
   const id = route.params.workspaceId ?? route.params.id
   return typeof id === 'string' ? id : ''
@@ -136,6 +135,16 @@ function handleLogout() {
         </div>
 
         <div class="user-actions">
+          <RouterLink class="profile-chip" to="/settings/profile">
+            <UserAvatar
+              :name="authStore.user?.name"
+              :email="authStore.user?.email"
+              :avatar-url="authStore.user?.avatarUrl"
+              :gravatar-url="authStore.user?.gravatarUrl"
+              :size="32"
+            />
+            <span class="user-name">{{ displayName }}</span>
+          </RouterLink>
           <RouterLink
             class="settings-icon-button"
             to="/settings/appearance"
@@ -143,13 +152,6 @@ function handleLogout() {
             title="Appearance settings"
           >
             ⚙
-          </RouterLink>
-          <RouterLink class="profile-chip" to="/settings/profile">
-            <span class="avatar">
-              <img v-if="avatarUrl" :src="avatarUrl" :alt="`${displayName} avatar`" />
-              <span v-else>{{ userInitial }}</span>
-            </span>
-            <span class="user-name">{{ displayName }}</span>
           </RouterLink>
           <RouterLink class="secondary-button" to="/settings/password">Change password</RouterLink>
           <button class="secondary-button" type="button" @click="handleLogout">Logout</button>
@@ -278,24 +280,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-}
-
-.avatar {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 14px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-text);
-  font-weight: 700;
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  color: inherit;
 }
 
 .user-name {

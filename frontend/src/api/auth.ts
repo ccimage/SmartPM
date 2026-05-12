@@ -6,6 +6,7 @@ export interface UserProfile {
   name: string
   email: string
   avatarUrl?: string | null
+  gravatarUrl?: string | null
   createdAt?: string
   preferences: UserPreferences
 }
