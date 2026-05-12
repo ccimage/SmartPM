@@ -12,9 +12,11 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppLayout: typeof import('./components/layout/AppLayout.vue')['default']
+    BreadcrumbNav: typeof import('./components/layout/BreadcrumbNav.vue')['default']
     RichTextEditor: typeof import('./components/common/RichTextEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     UserAvatar: typeof import('./components/common/UserAvatar.vue')['default']
+    UserMenu: typeof import('./components/layout/UserMenu.vue')['default']
   }
 }
