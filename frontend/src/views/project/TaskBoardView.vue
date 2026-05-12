@@ -13,6 +13,7 @@ import {
 } from '@/api/task'
 import { getProject } from '@/api/project'
 import { useAppStore } from '@/stores/app'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 
 interface ColumnDefinition {
   status: TaskStatus
@@ -484,7 +485,7 @@ watch(workspaceId, () => {
 
           <label class="description-field">
             <span>Description</span>
-            <textarea v-model="detailForm.description" rows="7" placeholder="Add details"></textarea>
+            <RichTextEditor v-model="detailForm.description" placeholder="Add details" />
           </label>
         </div>
 
@@ -691,7 +692,6 @@ h3 {
 .add-task-form input,
 .drawer-fields input,
 .drawer-fields select,
-.drawer-fields textarea,
 .title-input {
   width: 100%;
   min-width: 0;
@@ -849,10 +849,6 @@ button:disabled {
   color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 700;
-}
-
-.drawer-fields textarea {
-  resize: vertical;
 }
 
 .drawer-actions {

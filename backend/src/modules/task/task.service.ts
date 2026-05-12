@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import sanitizeHtml from 'sanitize-html';
 import { IsNull, Repository } from 'typeorm';
 import { Task } from './task.entity';
 import { TaskTag } from './task-tag.entity';
@@ -36,7 +37,7 @@ export class TaskService {
         projectId,
         creatorId: userId,
         title: dto.title,
-        description: dto.description ?? null,
+        description: this.sanitizeDescription(dto.description),
         status: dto.status ?? 'todo',
         priority: dto.priority ?? 'normal',
         assigneeId: dto.assigneeId ?? null,
@@ -132,7 +133,13 @@ export class TaskService {
       assigneeId: task.assigneeId,
       title: task.title,
     };
-    await this.taskRepo.update(taskId, dto);
+    const updatePayload = {
+      ...dto,
+      ...(dto.description !== undefined
+        ? { description: this.sanitizeDescription(dto.description) }
+        : {}),
+    };
+    await this.taskRepo.update(taskId, updatePayload);
     const updated = await this.taskRepo.findOneOrFail({ where: { id: taskId } });
     const after = {
       status: updated.status,
@@ -254,6 +261,42 @@ export class TaskService {
 
   private async getWorkspaceId(projectId: string): Promise<string> {
     return this.projectService.getProjectWorkspaceId(projectId);
+  }
+
+  private sanitizeDescription(html: string | null | undefined): string | null {
+    if (!html?.trim()) {
+      return null;
+    }
+
+    return sanitizeHtml(html, {
+      allowedTags: [
+        'p',
+        'br',
+        'strong',
+        'em',
+        'u',
+        's',
+        'h1',
+        'h2',
+        'h3',
+        'ol',
+        'ul',
+        'li',
+        'a',
+        'blockquote',
+        'pre',
+        'code',
+      ],
+      allowedAttributes: {
+        a: ['href', 'target', 'rel'],
+      },
+      transformTags: {
+        a: sanitizeHtml.simpleTransform('a', {
+          rel: 'noopener noreferrer',
+          target: '_blank',
+        }),
+      },
+    });
   }
 
   private publishActivity(params: {
