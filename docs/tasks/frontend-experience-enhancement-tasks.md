@@ -62,14 +62,14 @@
 
 ---
 
-### M5. 第三方登录
+### M5. OAuth2 登录
 
-目标：完成第三方登录基础架构和 5 个平台接入。
+目标：完成标准 OAuth2 协议对接，配置 appid/appkey 后可正常登录。
 
 交付结果：
 
-- 登录页支持账号密码 + 第三方登录
-- 第三方资料可入库并绑定本地账号
+- 登录页支持账号密码 + OAuth2 登录
+- OAuth2 登录后以 email 为唯一键创建或关联本地账号
 
 ---
 
@@ -93,9 +93,8 @@
 ## 3.2 后端数据结构改造
 
 - 新增 `user_preferences` 表
-- 新增 `user_auth_identities` 表
 - 为 `users` 增加 `avatar_source`、`avatar_file_id`
-- 评估 `users.password_hash` 是否允许为空以支持纯第三方账号
+- `users.password_hash` 允许为空以支持纯 OAuth2 账号
 - 编写对应 TypeORM entity 与 migration
 
 完成标准：
@@ -109,9 +108,7 @@
 
 - 新增 `GET/PATCH /users/me/preferences`
 - 新增 `POST/DELETE /users/me/avatar`
-- 新增 `GET /users/me/auth-identities`
-- 扩展 `GET /auth/providers`
-- 新增第三方登录 `start/callback` 接口
+- 新增 `GET /auth/oauth2/start`、`GET /auth/oauth2/callback`、`GET /auth/oauth2/config`
 - 扩展 `GET /auth/me` 返回 `avatarSource` 与 `preferences`
 - 对富文本内容增加白名单清洗
 
@@ -128,7 +125,7 @@
 - 新增 `theme` store 或在 `app` store 中增加主题状态
 - 应用启动时拉取用户偏好并注入 CSS 变量
 - 封装背景图与遮罩应用逻辑
-- 封装头像展示组件，统一处理 `custom/provider/gravatar/system`
+- 封装头像展示组件，统一处理 `custom/gravatar/system`
 - 封装统一图标映射
 
 完成标准：
@@ -215,18 +212,18 @@
 
 ---
 
-## 3.10 第三方登录接入
+## 3.10 OAuth2 登录接入
 
-- 抽象 provider adapter
-- 分别接入 GitHub、飞书、钉钉、企业微信、微信扫码
-- 完成回调、建号、绑定、登录签发 JWT
-- 处理 email 缺失场景
-- 处理同邮箱账号绑定策略
+- 实现标准 OAuth2 授权码流程（start → callback → userinfo）
+- 通过环境变量配置 appid、appkey、授权地址、token 地址、userinfo 地址
+- 以 email 为唯一键查找或创建本地用户，签发 JWT
+- 前端新增 `/auth/callback` 页面接收登录结果
+- 登录页根据 `/auth/oauth2/config` 决定是否显示 OAuth2 入口
 
 完成标准：
 
-- 5 个 provider 均可走通测试环境登录流程
-- 第三方唯一账号可稳定绑定本地用户
+- 配置环境变量后可走通完整 OAuth2 登录流程
+- email 可稳定作为用户唯一标识
 
 ---
 
@@ -268,11 +265,11 @@
 
 ## 六、验收清单
 
-- [ ] 登录页支持皮肤与第三方登录入口
+- [ ] 登录页支持皮肤与 OAuth2 登录入口
 - [ ] 主界面支持主题色和背景图
 - [ ] 个人设置支持头像、主题、背景图配置
 - [ ] 系统支持 gravatar 默认头像与自定义头像
 - [ ] 主界面关键区域已增加统一风格图标
 - [ ] 任务页结构参考目标示意图完成改版
 - [ ] 多行文本输入统一为 `Quill` 或 `tinymce-vue`
-- [ ] 第三方登录支持微信、企业微信、钉钉、飞书、GitHub
+- [ ] OAuth2 登录配置 appid/appkey 后可正常走通登录流程

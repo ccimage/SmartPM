@@ -139,113 +139,81 @@ CREATE TABLE user_preferences (
 
 ---
 
-## 五、第三方登录与账号绑定
+## 五、OAuth2 登录与账号绑定
 
-## 5.1 提供方范围
+## 5.1 方案说明
 
-- 微信扫码
-- 企业微信
-- 钉钉
-- 飞书
-- GitHub
+本项目不直接集成各第三方平台（微信、钉钉、飞书等），而是对接标准 OAuth2 协议。第三方账号的聚合由外部 OAuth 平台统一处理，本项目只需配置 `appid` 和 `appkey` 即可接入。
+
+OAuth2 登录后通过标准 userinfo 端点获取：
+- 姓名（昵称）
+- email（作为用户唯一标识）
 
 ---
 
-## 5.2 统一账号模型
+## 5.2 账号模型
 
-建议新增 `user_auth_identities` 表：
+不需要 `user_auth_identities` 表。以 email 作为唯一键，直接关联本地用户：
 
-```sql
-CREATE TABLE user_auth_identities (
-  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  provider           VARCHAR(50) NOT NULL,
-  provider_user_id   VARCHAR(255) NOT NULL,
-  provider_union_id  VARCHAR(255),
-  provider_email     VARCHAR(255),
-  provider_name      VARCHAR(255),
-  provider_avatar_url VARCHAR(1000),
-  access_token       TEXT,
-  refresh_token      TEXT,
-  token_expires_at   TIMESTAMPTZ,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (provider, provider_user_id)
-);
-```
-
-说明：
-
-- `provider_user_id` 是绑定主键。
-- `provider_union_id` 用于支持微信类生态的统一标识场景。
-- token 字段本期可选存储，是否持久化取决于后续是否需要调用第三方 API。
-
-同时调整 `users.password_hash`：
-
-- 允许为空，支持纯第三方注册用户。
+- 首次 OAuth2 登录：以 email 自动创建本地用户，记录 `login_source = 'oauth2'`。
+- 已有相同 email 的本地账号：直接关联登录，无需额外确认。
+- `users.password_hash` 允许为空，支持纯 OAuth2 注册用户。
 
 ---
 
 ## 5.3 登录流程
 
-统一抽象为 `ProviderAdapter`：
-
-```ts
-interface ProviderAdapter {
-  getAuthorizePayload(): Promise<{ type: 'redirect' | 'qrcode'; url: string }>
-  exchangeCallback(params: Record<string, string>): Promise<ProviderProfile>
-}
 ```
-
-`ProviderProfile` 标准化字段：
-
-```ts
-interface ProviderProfile {
-  provider: 'wechat' | 'wechat_work' | 'dingtalk' | 'feishu' | 'github'
-  providerUserId: string
-  unionId?: string | null
-  name?: string | null
-  email?: string | null
-  avatarUrl?: string | null
-}
+登录页点击 OAuth2 登录
+  → 前端请求后端 GET /api/v1/auth/oauth2/start
+  → 后端返回授权跳转地址（带 state）
+  → 用户在 OAuth2 平台完成授权
+  → OAuth2 平台回调后端 GET /api/v1/auth/oauth2/callback
+  → 后端通过 userinfo 端点获取 name + email
+  → 查找或创建本地用户，签发 JWT
+  → 前端 /auth/callback 接收 JWT，进入主界面
 ```
-
-核心流程：
-
-1. 登录页点击第三方登录。
-2. 前端请求后端发起授权或获取二维码地址。
-3. 用户扫码或授权。
-4. 第三方回调至后端。
-5. 后端标准化资料、查找/创建本地用户、建立绑定关系。
-6. 后端签发本地 JWT。
-7. 前端跳转到 `/auth/callback/:provider` 接收登录结果并进入主界面。
 
 ---
 
-## 5.4 API 设计补充
-
-建议新增接口：
+## 5.4 API 设计
 
 ```http
-GET  /api/v1/auth/providers
-GET  /api/v1/auth/:provider/start
-GET  /api/v1/auth/:provider/callback
-POST /api/v1/auth/:provider/bind
-GET  /api/v1/users/me/auth-identities
-DELETE /api/v1/users/me/auth-identities/:identityId
+GET  /api/v1/auth/oauth2/start       # 返回授权跳转地址
+GET  /api/v1/auth/oauth2/callback    # OAuth2 回调，完成登录，签发 JWT
+GET  /api/v1/auth/oauth2/config      # 返回是否已配置（前端据此决定是否显示入口）
 ```
 
-说明：
+`GET /api/v1/auth/oauth2/config` 响应示例：
 
-- `start` 用于统一返回跳转地址或二维码地址。
-- `callback` 由服务端完成登录闭环，前端只接收最终 JWT 或一次性交换码。
-- 账号中心可查看已绑定平台。
+```json
+{
+  "enabled": true,
+  "loginButtonLabel": "企业 SSO 登录"
+}
+```
 
 安全要求：
+- 授权请求必须带 `state` 防 CSRF。
+- 回调时校验 `state` 一致性。
 
-- 所有 OAuth/扫码流程必须带 `state` 防 CSRF。
-- 第三方回调结果必须做签名/票据校验。
-- 不信任第三方返回的 email 已验证状态，除非各平台明确给出可信标识。
+---
+
+## 5.5 配置方式
+
+通过环境变量或系统配置项注入：
+
+```
+OAUTH2_CLIENT_ID=xxx
+OAUTH2_CLIENT_SECRET=xxx
+OAUTH2_AUTHORIZE_URL=https://sso.example.com/oauth/authorize
+OAUTH2_TOKEN_URL=https://sso.example.com/oauth/token
+OAUTH2_USERINFO_URL=https://sso.example.com/oauth/userinfo
+OAUTH2_SCOPE=openid profile email
+OAUTH2_LOGIN_BUTTON_LABEL=企业 SSO 登录
+```
+
+未配置 `OAUTH2_CLIENT_ID` 时，登录页不显示 OAuth2 入口。
 
 ---
 
@@ -256,9 +224,8 @@ DELETE /api/v1/users/me/auth-identities/:identityId
 统一优先级如下：
 
 1. 用户自定义上传头像
-2. 用户手动确认保留的第三方头像
-3. gravatar 默认头像（存在 email 时）
-4. 本地字母占位头像
+2. gravatar 默认头像（存在 email 时）
+3. 本地字母占位头像
 
 ---
 
@@ -274,7 +241,7 @@ ALTER TABLE users
 
 字段说明：
 
-- `avatar_source`：`custom / provider / gravatar / system`
+- `avatar_source`：`custom / gravatar / system`
 - `avatar_file_id`：复用文件表，表示用户上传头像
 
 `avatar_url` 仍保留，作为最终可直接展示的头像地址缓存字段。
@@ -471,7 +438,9 @@ GET   /api/v1/users/me/preferences
 PATCH /api/v1/users/me/preferences
 POST  /api/v1/users/me/avatar
 DELETE /api/v1/users/me/avatar
-GET   /api/v1/users/me/auth-identities
+GET   /api/v1/auth/oauth2/start
+GET   /api/v1/auth/oauth2/callback
+GET   /api/v1/auth/oauth2/config
 ```
 
 `PATCH /users/me/preferences` 请求示例：
@@ -512,19 +481,19 @@ GET   /api/v1/users/me/auth-identities
 3. 主界面图标与布局改版
 4. 任务页结构重构
 5. 富文本组件接入
-6. 第三方登录接入
+6. OAuth2 登录接入
 
 原因：
 
 - 前 5 项主要影响前端体验，可快速提升产品观感。
-- 第三方登录依赖平台配置、回调域名与安全校验，实施周期更长，适合最后并行推进。
+- OAuth2 登录依赖外部平台配置与回调域名，实施周期更长，适合最后并行推进。
 
 ---
 
 ## 十二、风险与注意事项
 
-- 微信、企业微信、钉钉、飞书的登录模式和返回字段不完全一致，必须通过适配层收敛。
+- OAuth2 要求提供方必须返回 email；若 userinfo 端点不返回 email，登录流程无法完成，需在接入前确认。
 - `gravatar.com` 在部分网络环境下可能不可达，必须有加载失败降级。
 - 富文本引入后，后端必须同步增加 HTML 清洗，否则存在 XSS 风险。
-- 主题切换后需要验证文本对比度，避免“好看但不可读”。
+- 主题切换后需要验证文本对比度，避免”好看但不可读”。
 
