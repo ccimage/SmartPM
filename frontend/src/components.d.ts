@@ -13,6 +13,9 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppLayout: typeof import('./components/layout/AppLayout.vue')['default']
     BreadcrumbNav: typeof import('./components/layout/BreadcrumbNav.vue')['default']
+    IconPicker: typeof import('./components/project/IconPicker.vue')['default']
+    ProjectColorPicker: typeof import('./components/project/ProjectColorPicker.vue')['default']
+    ProjectStylePicker: typeof import('./components/project/ProjectStylePicker.vue')['default']
     RichTextEditor: typeof import('./components/common/RichTextEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

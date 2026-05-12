@@ -119,7 +119,7 @@ onClickOutside(rootRef, () => {
   top: calc(100% + 8px);
   left: 0;
   z-index: 200;
-  width: 292px;
+/*  width: 292px; */
   background: white;
   border: 1px solid var(--color-border-default);
   border-radius: 16px;
@@ -138,7 +138,7 @@ onClickOutside(rootRef, () => {
 
 .color-row {
   display: flex;
-  gap: 6px;
+  gap: 3px;
 }
 
 .color-swatch {
