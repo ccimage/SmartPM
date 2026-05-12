@@ -48,7 +48,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <main class="login-page">
+  <div class="login-shell">
     <section class="login-panel">
       <div class="login-heading">
         <p>SmartPM</p>
@@ -78,35 +78,28 @@ async function handleSubmit() {
         <RouterLink to="/register">Register</RouterLink>
       </p>
     </section>
-  </main>
+  </div>
 </template>
 
 <style scoped>
-.login-page {
-  display: grid;
+.login-shell {
   min-height: 100vh;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: var(--app-background-image, none);
+  background-size: cover;
+  background-position: center;
   position: relative;
   padding: 24px;
 }
 
-.login-page::before {
+.login-shell::before {
+  content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(160deg, rgba(248, 250, 252, 0.4), rgba(248, 250, 252, 0.22)),
-    var(--app-background-image),
-    radial-gradient(circle at top left, #eff6ff, #dbeafe 40%, #f8fafc);
-  background-position: center;
-  background-size: cover;
-  content: '';
-}
-
-.login-page::after {
-  position: absolute;
-  inset: 0;
-  background: var(--app-background-overlay);
-  content: '';
+  background: var(--app-background-overlay, rgba(15, 23, 42, 0.34));
+  z-index: 0;
 }
 
 .login-panel {

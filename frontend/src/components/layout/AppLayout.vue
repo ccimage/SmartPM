@@ -128,14 +128,22 @@ function handleLogout() {
       </nav>
     </aside>
 
-    <div class="content-shell">
-      <header class="header">
+    <div class="main-area">
+      <header class="topbar">
         <div>
           <p class="eyebrow">{{ headerEyebrow }}</p>
           <h1>{{ headerTitle }}</h1>
         </div>
 
         <div class="user-actions">
+          <RouterLink
+            class="settings-icon-button"
+            to="/settings/appearance"
+            aria-label="Appearance settings"
+            title="Appearance settings"
+          >
+            ⚙
+          </RouterLink>
           <RouterLink class="profile-chip" to="/settings/profile">
             <span class="avatar">
               <img v-if="avatarUrl" :src="avatarUrl" :alt="`${displayName} avatar`" />
@@ -143,13 +151,12 @@ function handleLogout() {
             </span>
             <span class="user-name">{{ displayName }}</span>
           </RouterLink>
-          <RouterLink class="secondary-button" to="/settings/appearance">Appearance</RouterLink>
           <RouterLink class="secondary-button" to="/settings/password">Change password</RouterLink>
           <button class="secondary-button" type="button" @click="handleLogout">Logout</button>
         </div>
       </header>
 
-      <main class="main-content">
+      <main class="page-content">
         <RouterView />
       </main>
     </div>
@@ -158,19 +165,28 @@ function handleLogout() {
 
 <style scoped>
 .app-shell {
-  display: grid;
+  display: flex;
   min-height: 100vh;
-  grid-template-columns: 240px 1fr;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.8)),
-    var(--app-background-image),
-    var(--color-bg-app);
-  background-attachment: fixed;
-  background-position: center;
+  background-image: var(--app-background-image, none);
   background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.app-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--app-background-overlay, rgba(15, 23, 42, 0.34));
+  pointer-events: none;
+  z-index: 0;
 }
 
 .sidebar {
+  position: relative;
+  z-index: 1;
+  width: 240px;
+  flex-shrink: 0;
   border-right: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(18px);
@@ -205,11 +221,14 @@ function handleLogout() {
   padding-left: 24px;
 }
 
-.content-shell {
+.main-area {
+  position: relative;
+  z-index: 1;
+  flex: 1;
   min-width: 0;
 }
 
-.header {
+.topbar {
   display: flex;
   min-height: 76px;
   align-items: center;
@@ -239,6 +258,20 @@ h1 {
   display: flex;
   align-items: center;
   gap: 14px;
+}
+
+.settings-icon-button {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--color-text-primary);
+  font-size: 18px;
+  line-height: 1;
 }
 
 .profile-chip {
@@ -278,13 +311,13 @@ h1 {
   padding: 8px 12px;
 }
 
-.main-content {
+.page-content {
   padding: 28px;
 }
 
 @media (max-width: 760px) {
   .app-shell {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
   .sidebar {
@@ -300,7 +333,7 @@ h1 {
     margin: 0;
   }
 
-  .header {
+  .topbar {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
@@ -313,7 +346,7 @@ h1 {
     gap: 8px;
   }
 
-  .main-content {
+  .page-content {
     padding: 18px;
   }
 }

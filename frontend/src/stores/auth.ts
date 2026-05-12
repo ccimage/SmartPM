@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import * as authApi from '@/api/auth'
 import { TOKEN_STORAGE_KEY } from '@/api/http'
 import type { UserProfile } from '@/api/auth'
-import { useThemeStore } from './theme'
+import { useThemeStore } from '@/stores/theme'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserProfile | null>(null)
@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const response = await authApi.getMe()
     user.value = response.data
-    themeStore.setPreferences(response.data.preferences)
+    await themeStore.loadPreferences()
     return response.data
   }
 

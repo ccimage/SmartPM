@@ -4,7 +4,6 @@ import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import TaskBoardView from '@/views/project/TaskBoardView.vue'
 import ProjectListView from '@/views/project/ProjectListView.vue'
-import AppearanceSettingsView from '@/views/user/AppearanceSettingsView.vue'
 import ChangePasswordView from '@/views/user/ChangePasswordView.vue'
 import ProfileSettingsView from '@/views/user/ProfileSettingsView.vue'
 import WorkspaceListView from '@/views/workspace/WorkspaceListView.vue'
@@ -57,7 +56,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'settings/appearance',
         name: 'appearance-settings',
-        component: AppearanceSettingsView,
+        component: () => import('@/views/user/AppearanceSettingsView.vue'),
       },
       {
         path: 'settings/password',
