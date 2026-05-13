@@ -24,22 +24,10 @@ hljs.registerLanguage('json', json)
 hljs.registerLanguage('xml', xml)
 hljs.registerLanguage('css', css)
 
+// Quill syntax 模块通过 window.hljs 查找，必须挂载
+;(window as any).hljs = hljs
+
 const quillInstance = ref<any>(null)
-
-const minimalToolbar = [
-  ['bold', 'italic', 'underline'],
-  [{ list: 'ordered' }, { list: 'bullet' }],
-  ['link', 'code-block', 'image'],
-  ['clean'],
-]
-
-const fullToolbar = [
-  ['bold', 'italic', 'underline', 'strike'],
-  [{ header: [1, 2, 3, false] }],
-  [{ list: 'ordered' }, { list: 'bullet' }],
-  ['link', 'blockquote', 'code-block', 'image'],
-  ['clean'],
-]
 
 const props = withDefaults(
   defineProps<{
@@ -59,30 +47,49 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
+const minimalToolbar = [
+  ['bold', 'italic', 'underline'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['link', 'code-block', 'image'],
+  ['clean'],
+]
+
+const fullToolbar = [
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ header: [1, 2, 3, false] }],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['link', 'blockquote', 'code-block', 'image'],
+  ['clean'],
+]
+
 const editorModules = computed(() => ({
-  syntax: { hljs },
-  toolbar: props.readonly ? false : props.toolbarPreset === 'full' ? fullToolbar : minimalToolbar,
+  syntax: true,  // 使用 window.hljs，已在上方挂载
 }))
+
+const toolbar = computed(() =>
+  props.readonly ? false : props.toolbarPreset === 'full' ? fullToolbar : minimalToolbar,
+)
 
 function handleLoad(event: { instance: any }) {
   quillInstance.value = event.instance
 
-  const toolbar = event.instance.getModule('toolbar')
-  toolbar.addHandler('image', () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (file) handleImageFile(file)
-    }
-    input.click()
-  })
+  const tb = event.instance.getModule('toolbar')
+  if (tb) {
+    tb.addHandler('image', () => {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*'
+      input.onchange = () => {
+        const file = input.files?.[0]
+        if (file) handleImageFile(file)
+      }
+      input.click()
+    })
+  }
 
   event.instance.root.addEventListener('paste', (e: ClipboardEvent) => {
     const items = e.clipboardData?.items
     if (!items) return
-
     for (const item of Array.from(items)) {
       if (item.type.startsWith('image/')) {
         e.preventDefault()
@@ -96,7 +103,6 @@ function handleLoad(event: { instance: any }) {
   event.instance.root.addEventListener('drop', (e: DragEvent) => {
     const files = e.dataTransfer?.files
     if (!files?.length) return
-
     for (const file of Array.from(files)) {
       if (file.type.startsWith('image/')) {
         e.preventDefault()
@@ -112,12 +118,10 @@ async function handleImageFile(file: File) {
     console.warn('图片超过 10MB 限制')
     return
   }
-
   try {
     const result = await uploadImage(file)
     const quill = quillInstance.value
     if (!quill) return
-
     const index = quill.getSelection(true)?.index ?? quill.getLength()
     quill.insertEmbed(index, 'image', result.url)
   } catch (err) {
@@ -131,6 +135,7 @@ async function handleImageFile(file: File) {
     <Editor
       :model-value="modelValue"
       :modules="editorModules"
+      :toolbar="toolbar"
       :placeholder="placeholder ?? ''"
       :readonly="readonly"
       @update:model-value="emit('update:modelValue', $event ?? '')"
