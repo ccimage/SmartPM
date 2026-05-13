@@ -4,8 +4,11 @@ import { useRoute } from 'vue-router'
 import {
   createTask,
   deleteTask,
+  listTags,
   listTasks,
+  setTaskTags,
   updateTask,
+  type Tag,
   type Task,
   type TaskPriority,
   type TaskStatus,
@@ -14,6 +17,8 @@ import {
 import { getProject } from '@/api/project'
 import { useAppStore } from '@/stores/app'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import TaskFieldRow from '@/components/task/TaskFieldRow.vue'
+import TagSelector from '@/components/task/TagSelector.vue'
 
 interface ColumnDefinition {
   status: TaskStatus
@@ -54,6 +59,8 @@ const selectedTask = ref<Task | null>(null)
 const errorMessage = ref('')
 const addErrorMessage = ref('')
 const drawerErrorMessage = ref('')
+const projectTags = ref<Tag[]>([])
+const detailTagIds = ref<string[]>([])
 
 const detailForm = reactive({
   title: '',
@@ -122,6 +129,20 @@ async function loadTasks() {
   }
 }
 
+async function loadTags() {
+  if (!projectId.value) {
+    projectTags.value = []
+    return
+  }
+
+  try {
+    const response = await listTags(projectId.value)
+    projectTags.value = response.data
+  } catch {
+    projectTags.value = []
+  }
+}
+
 function taskCount(status: TaskStatus) {
   return groupedTasks.value[status].length
 }
@@ -166,6 +187,7 @@ async function submitNewTask(status: TaskStatus) {
 function openTask(task: Task) {
   selectedTask.value = task
   drawerErrorMessage.value = ''
+  detailTagIds.value = task.tags?.map((tag) => tag.id) ?? []
   detailForm.title = task.title
   detailForm.status = task.status
   detailForm.priority = task.priority
@@ -183,6 +205,32 @@ function updateTaskInList(task: Task) {
 
   if (selectedTask.value?.id === task.id) {
     selectedTask.value = task
+  }
+}
+
+async function handleTagsUpdate(tagIds: string[]) {
+  if (!selectedTask.value) {
+    return
+  }
+
+  const taskId = selectedTask.value.id
+  detailTagIds.value = tagIds
+  const selectedTags = projectTags.value.filter((tag) => tagIds.includes(tag.id))
+  const taskWithTags = { ...selectedTask.value, tags: selectedTags }
+  updateTaskInList(taskWithTags)
+
+  try {
+    const response = await setTaskTags(taskId, tagIds)
+    updateTaskInList(response.data)
+    detailTagIds.value = response.data.tags?.map((tag) => tag.id) ?? tagIds
+
+    const knownTagIds = new Set(projectTags.value.map((tag) => tag.id))
+    const missingTags = response.data.tags?.filter((tag) => !knownTagIds.has(tag.id)) ?? []
+    if (missingTags.length > 0) {
+      projectTags.value = [...projectTags.value, ...missingTags]
+    }
+  } catch {
+    drawerErrorMessage.value = 'Unable to update task tags.'
   }
 }
 
@@ -317,13 +365,13 @@ function formatDueDate(dueDate?: string | null) {
 }
 
 onMounted(async () => {
-  await Promise.all([loadProjectContext(), loadTasks()])
+  await Promise.all([loadProjectContext(), loadTasks(), loadTags()])
 })
 
 watch(projectId, async () => {
   closeTask()
   cancelAdding()
-  await Promise.all([loadProjectContext(), loadTasks()])
+  await Promise.all([loadProjectContext(), loadTasks(), loadTags()])
 })
 
 watch(workspaceId, () => {
@@ -378,6 +426,20 @@ watch(workspaceId, () => {
                 {{ priorityLabels[task.priority] }}
               </span>
             </span>
+
+            <div v-if="task.tags?.length" class="card-tags">
+              <span
+                v-for="tag in task.tags"
+                :key="tag.id"
+                class="tag-capsule"
+                :style="{
+                  background: (tag.color ?? '#64748b') + '18',
+                  color: tag.color ?? '#64748b',
+                }"
+              >
+                {{ tag.name }}
+              </span>
+            </div>
 
             <span v-if="task.assignee" class="card-line">{{ task.assignee.name }}</span>
             <span
@@ -459,34 +521,38 @@ watch(workspaceId, () => {
         </header>
 
         <div class="drawer-fields">
-          <label>
-            <span>Status</span>
+          <TaskFieldRow icon="circle-half-stroke" label="状态">
             <select v-model="detailForm.status">
               <option value="todo">Todo</option>
               <option value="in_progress">In Progress</option>
               <option value="done">Done</option>
             </select>
-          </label>
+          </TaskFieldRow>
 
-          <label>
-            <span>Priority</span>
+          <TaskFieldRow icon="flag" label="优先级">
             <select v-model="detailForm.priority">
               <option value="low">Low</option>
               <option value="normal">Normal</option>
               <option value="high">High</option>
               <option value="urgent">Urgent</option>
             </select>
-          </label>
+          </TaskFieldRow>
 
-          <label>
-            <span>Due date</span>
+          <TaskFieldRow icon="calendar" label="截止日期">
             <input v-model="detailForm.dueDate" type="date" />
-          </label>
+          </TaskFieldRow>
 
-          <label class="description-field">
-            <span>Description</span>
+          <TaskFieldRow icon="tag" label="标签">
+            <TagSelector
+              v-model="detailTagIds"
+              :project-id="projectId"
+              @update:model-value="handleTagsUpdate"
+            />
+          </TaskFieldRow>
+
+          <TaskFieldRow icon="align-left" label="描述">
             <RichTextEditor v-model="detailForm.description" placeholder="Add details" />
-          </label>
+          </TaskFieldRow>
         </div>
 
         <p v-if="drawerErrorMessage" class="form-error">{{ drawerErrorMessage }}</p>
@@ -658,6 +724,19 @@ h3 {
 
 .priority-urgent .priority-dot {
   background: rgb(220 38 38);
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag-capsule {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
 }
 
 .card-line {
@@ -838,17 +917,6 @@ button:disabled {
 .drawer-fields {
   display: grid;
   gap: 14px;
-}
-
-.drawer-fields label {
-  display: grid;
-  gap: 6px;
-}
-
-.drawer-fields span {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 700;
 }
 
 .drawer-actions {
