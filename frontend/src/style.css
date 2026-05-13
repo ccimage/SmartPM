@@ -50,3 +50,22 @@ a {
 #app {
   min-height: 100vh;
 }
+
+/* PrimeVue CSS 变量覆盖，使其跟随设计系统 */
+:root {
+  --p-primary-color: var(--color-primary);
+  --p-primary-contrast-color: #ffffff;
+  --p-primary-hover-color: var(--color-primary-hover);
+  --p-surface-0: var(--color-bg-panel);
+  --p-surface-border: var(--color-border-default);
+  --p-text-color: var(--color-text-primary);
+  --p-text-muted-color: var(--color-text-secondary);
+  --p-focus-ring-color: var(--color-focus-ring);
+  --p-border-radius-sm: 6px;
+  --p-border-radius-md: 8px;
+  --p-border-radius-lg: 12px;
+  --p-border-radius-xl: 16px;
+  --p-content-border-radius: 8px;
+  --p-overlay-select-border-radius: 12px;
+  --p-overlay-popover-border-radius: 12px;
+}

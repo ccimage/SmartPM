@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,6 +14,7 @@ export default defineConfig({
       dts: 'src/auto-imports.d.ts',
     }),
     Components({
+      resolvers: [PrimeVueResolver()],
       dirs: ['src/components'],
       dts: 'src/components.d.ts',
     }),
