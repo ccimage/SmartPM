@@ -66,6 +66,11 @@ const segments = computed<BreadcrumbSegment[]>(() => {
 .breadcrumb-link {
   color: var(--color-text-secondary);
   text-decoration: none;
+  transition: color 150ms;
+}
+
+.breadcrumb-link:hover {
+  color: var(--color-primary-text);
 }
 
 .breadcrumb-link.is-current {

@@ -74,10 +74,10 @@ watch(
         <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-name">SmartPM</span>
       </div>
-      <BreadcrumbNav class="breadcrumb-area" />
       <UserMenu />
     </header>
     <main class="page-content">
+      <BreadcrumbNav class="page-breadcrumb" />
       <RouterView />
     </main>
   </div>
@@ -135,6 +135,10 @@ watch(
   flex: 1;
   display: flex;
   justify-content: center;
+}
+
+.page-breadcrumb {
+  margin-bottom: 16px;
 }
 
 .page-content {
