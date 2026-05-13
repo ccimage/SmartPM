@@ -12,7 +12,7 @@ import json from 'highlight.js/lib/languages/json'
 import xml from 'highlight.js/lib/languages/xml'
 import css from 'highlight.js/lib/languages/css'
 import { uploadImage } from '@/api/file'
-import 'highlight.js/styles/github.css'
+import 'highlight.js/styles/vs.css'
 
 hljs.registerLanguage('javascript', javascript)
 hljs.registerLanguage('typescript', typescript)
