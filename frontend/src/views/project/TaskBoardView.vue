@@ -854,21 +854,25 @@ button:disabled {
   inset: 0;
   z-index: 20;
   display: flex;
-  justify-content: flex-end;
-  background: rgb(17 24 39 / 32%);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(17 24 39 / 48%);
+  backdrop-filter: blur(4px);
 }
 
 .task-drawer {
   display: flex;
-  width: min(440px, 100vw);
-  height: 100vh;
+  width: min(600px, 100%);
+  max-height: calc(100vh - 48px);
   flex-direction: column;
   gap: 18px;
   overflow-y: auto;
   background: var(--color-bg-panel);
-  border-left: 1px solid var(--color-border-default);
-  box-shadow: -20px 0 48px rgba(15, 23, 42, 0.14);
-  padding: 22px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+  padding: 24px;
 }
 
 .drawer-header {
@@ -943,11 +947,14 @@ button:disabled {
   }
 
   .drawer-backdrop {
-    background: transparent;
+    padding: 0;
+    align-items: flex-end;
   }
 
   .task-drawer {
-    width: 100vw;
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 20px 20px 0 0;
   }
 
   .drawer-actions {
