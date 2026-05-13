@@ -286,9 +286,12 @@ export class TaskService {
         'blockquote',
         'pre',
         'code',
+        'img',
       ],
       allowedAttributes: {
         a: ['href', 'target', 'rel'],
+        pre: ['data-language'],
+        img: ['src', 'alt', 'width', 'height'],
       },
       transformTags: {
         a: sanitizeHtml.simpleTransform('a', {

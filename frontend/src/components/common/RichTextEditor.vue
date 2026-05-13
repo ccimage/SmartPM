@@ -24,8 +24,25 @@ hljs.registerLanguage('json', json)
 hljs.registerLanguage('xml', xml)
 hljs.registerLanguage('css', css)
 
-// Quill syntax 模块通过 window.hljs 查找，必须挂载
-;(window as any).hljs = hljs
+// Quill syntax 模块默认从 window.hljs 读取
+// 包装 highlight 方法：当语言为 plain 或未指定时，自动检测
+const hljsProxy = {
+  ...hljs,
+  highlight(code: string, options: any) {
+    // Quill v2 调用签名：highlight(code, { language })
+    const lang = typeof options === 'object' ? options.language : options
+    if (!lang || lang === 'plain') {
+      const result = hljs.highlightAuto(code)
+      return result
+    }
+    try {
+      return hljs.highlight(code, { language: lang, ignoreIllegals: true })
+    } catch {
+      return hljs.highlightAuto(code)
+    }
+  },
+}
+// ;(window as any).hljs = hljs
 
 const quillInstance = ref<any>(null)
 
@@ -62,8 +79,24 @@ const fullToolbar = [
   ['clean'],
 ]
 
+// 传入 languages 列表，key 必须与 hljs 注册的语言名一致
+// 同时传入 hljs 实例，覆盖 window.hljs 默认值
 const editorModules = computed(() => ({
-  syntax: true,  // 使用 window.hljs，已在上方挂载
+  syntax: {
+    hljs: hljsProxy,
+    languages: [
+      { key: 'plain', label: 'Plain' },
+      { key: 'bash', label: 'Bash' },
+      { key: 'css', label: 'CSS' },
+      { key: 'go', label: 'Go' },
+      { key: 'java', label: 'Java' },
+      { key: 'javascript', label: 'JavaScript' },
+      { key: 'json', label: 'JSON' },
+      { key: 'python', label: 'Python' },
+      { key: 'typescript', label: 'TypeScript' },
+      { key: 'xml', label: 'HTML/XML' },
+    ],
+  },
 }))
 
 const toolbar = computed(() =>
