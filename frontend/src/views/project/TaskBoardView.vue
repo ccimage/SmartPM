@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import {
   createTask,
   deleteTask,
+  getTask,
   listTags,
   listTasks,
   setTaskTags,
@@ -197,15 +198,26 @@ async function submitNewTask(status: TaskStatus) {
   }
 }
 
-function openTask(task: Task) {
+async function openTask(task: Task) {
   selectedTask.value = task
   drawerErrorMessage.value = ''
-  detailTagIds.value = task.tags?.map((tag) => tag.id) ?? []
+  // 列表数据不含 description 和 tags，需单独拉取完整数据
   detailForm.title = task.title
   detailForm.status = task.status
   detailForm.priority = task.priority
-  detailForm.description = task.description ?? ''
+  detailForm.description = ''
   detailForm.dueDate = task.dueDate ? task.dueDate.slice(0, 10) : ''
+  detailTagIds.value = []
+
+  try {
+    const response = await getTask(task.id)
+    const full = response.data
+    selectedTask.value = full
+    detailForm.description = full.description ?? ''
+    detailTagIds.value = full.tags?.map((tag) => tag.id) ?? []
+  } catch {
+    drawerErrorMessage.value = 'Unable to load task details.'
+  }
 }
 
 function closeTask() {
