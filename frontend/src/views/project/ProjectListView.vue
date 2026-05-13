@@ -128,21 +128,23 @@ watch(workspaceId, loadProjects)
     </div>
 
     <form class="create-form" @submit.prevent="handleCreateProject">
-      <input v-model="projectName" type="text" placeholder="项目名称" />
+      <InputText v-model="projectName" placeholder="项目名称" fluid />
       <ProjectStylePicker
         :icon="projectIcon"
         :color="projectColor"
         @update:icon="projectIcon = $event"
         @update:color="projectColor = $event"
       />
-      <button type="submit" :disabled="!canCreate || isCreating">
-        {{ isCreating ? '创建中...' : '创建项目' }}
-      </button>
-      <input
+      <Button
+        type="submit"
+        :label="isCreating ? '创建中...' : '创建项目'"
+        :disabled="!canCreate || isCreating"
+      />
+      <InputText
         v-model="projectDescription"
-        class="description-input"
-        type="text"
         placeholder="描述"
+        class="description-input"
+        fluid
       />
     </form>
 
@@ -257,34 +259,8 @@ p {
   gap: 10px;
 }
 
-input {
-  min-width: 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: var(--color-text-primary);
-  background: var(--color-bg-panel);
-}
-
-button {
-  border-radius: 8px;
-  font-weight: 700;
-}
-
-.create-form button {
-  border: 0;
-  background: var(--color-primary);
-  color: var(--color-bg-panel);
-  padding: 10px 14px;
-}
-
 .description-input {
   grid-column: 1 / -1;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .error-message {

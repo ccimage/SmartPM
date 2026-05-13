@@ -47,6 +47,19 @@ const statusLabels: Record<TaskStatus, string> = {
   done: 'Done',
 }
 
+const statusOptions = [
+  { label: 'Todo', value: 'todo' },
+  { label: 'In Progress', value: 'in_progress' },
+  { label: 'Done', value: 'done' },
+]
+
+const priorityOptions = [
+  { label: 'Low', value: 'low' },
+  { label: 'Normal', value: 'normal' },
+  { label: 'High', value: 'high' },
+  { label: 'Urgent', value: 'urgent' },
+]
+
 const tasks = ref<Task[]>([])
 const isLoading = ref(false)
 const isSaving = ref(false)
@@ -511,35 +524,39 @@ watch(workspaceId, () => {
         <header class="drawer-header">
           <div>
             <p class="drawer-eyebrow">{{ statusLabels[selectedTask.status] }}</p>
-            <input v-model="detailForm.title" class="title-input" type="text" />
+            <InputText v-model="detailForm.title" class="title-input" fluid />
           </div>
-          <button class="close-button" type="button" aria-label="Close task details" @click="closeTask">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            </svg>
-          </button>
+          <Button
+            icon="pi pi-times"
+            text
+            rounded
+            aria-label="Close task details"
+            class="close-button"
+            @click="closeTask"
+          />
         </header>
 
         <div class="drawer-fields">
           <TaskFieldRow icon="circle-half-stroke" label="状态">
-            <select v-model="detailForm.status">
-              <option value="todo">Todo</option>
-              <option value="in_progress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
+            <Select
+              v-model="detailForm.status"
+              :options="statusOptions"
+              option-label="label"
+              option-value="value"
+            />
           </TaskFieldRow>
 
           <TaskFieldRow icon="flag" label="优先级">
-            <select v-model="detailForm.priority">
-              <option value="low">Low</option>
-              <option value="normal">Normal</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
-            </select>
+            <Select
+              v-model="detailForm.priority"
+              :options="priorityOptions"
+              option-label="label"
+              option-value="value"
+            />
           </TaskFieldRow>
 
           <TaskFieldRow icon="calendar" label="截止日期">
-            <input v-model="detailForm.dueDate" type="date" />
+            <DatePicker v-model="detailForm.dueDate" date-format="yy-mm-dd" show-icon fluid />
           </TaskFieldRow>
 
           <TaskFieldRow icon="tag" label="标签">
@@ -558,12 +575,20 @@ watch(workspaceId, () => {
         <p v-if="drawerErrorMessage" class="form-error">{{ drawerErrorMessage }}</p>
 
         <footer class="drawer-actions">
-          <button class="primary-button" type="button" :disabled="isSaving" @click="saveTask">
-            {{ isSaving ? 'Saving...' : 'Save' }}
-          </button>
-          <button class="danger-button" type="button" :disabled="isDeleting" @click="removeTask">
-            {{ isDeleting ? 'Deleting...' : 'Delete' }}
-          </button>
+          <Button
+            :label="isSaving ? '保存中...' : '保存'"
+            :disabled="isSaving"
+            class="primary-button"
+            @click="saveTask"
+          />
+          <Button
+            :label="isDeleting ? '删除中...' : '删除'"
+            severity="danger"
+            outlined
+            :disabled="isDeleting"
+            class="danger-button"
+            @click="removeTask"
+          />
         </footer>
       </aside>
     </div>
@@ -768,10 +793,7 @@ h3 {
   padding: 12px;
 }
 
-.add-task-form input,
-.drawer-fields input,
-.drawer-fields select,
-.title-input {
+.add-task-form input {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--color-border-default);
@@ -797,8 +819,7 @@ h3 {
   padding: 10px 12px;
 }
 
-.add-actions button,
-.primary-button {
+.add-actions button {
   border: 0;
   border-radius: 8px;
   background: var(--color-primary);
@@ -811,15 +832,6 @@ h3 {
   border: 1px solid var(--color-border-default) !important;
   background: var(--color-bg-panel) !important;
   color: var(--color-text-secondary) !important;
-}
-
-.danger-button {
-  border: 1px solid rgba(220, 38, 38, 0.18);
-  border-radius: 8px;
-  background: rgba(254, 242, 242, 0.96);
-  color: rgb(185 28 28);
-  font-weight: 700;
-  padding: 10px 14px;
 }
 
 button:disabled {
@@ -890,32 +902,9 @@ button:disabled {
 }
 
 .title-input {
-  border: none;
-  border-bottom: 2px solid var(--color-border-default);
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 800;
-  padding: 4px 0;
-}
-
-.title-input:focus {
-  border-bottom-color: var(--color-primary);
-  outline: none;
-}
-
-.close-button {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
-  background: var(--color-bg-panel);
-  color: var(--color-text-secondary);
-  padding: 0;
+  width: 100%;
 }
 
 .drawer-fields {
