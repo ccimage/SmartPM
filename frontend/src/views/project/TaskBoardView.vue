@@ -891,7 +891,7 @@ button:disabled {
 
 .task-drawer {
   display: flex;
-  width: min(600px, 100%);
+  width: min(900px, 100%);
   max-height: calc(100vh - 48px);
   flex-direction: column;
   gap: 18px;

@@ -16,7 +16,7 @@ import json from 'highlight.js/lib/languages/json'
 import xml from 'highlight.js/lib/languages/xml'
 import css from 'highlight.js/lib/languages/css'
 import { uploadImage } from '@/api/file'
-import 'highlight.js/styles/vs2015.css'
+import 'highlight.js/styles/tokyo-night-dark.css'
 
 hljs.registerLanguage('javascript', javascript)
 hljs.registerLanguage('typescript', typescript)
@@ -281,7 +281,6 @@ async function handleImageFile(file: File) {
 
 /* 代码块：补齐 .hljs class 后，让 highlight.js 的 vs2015 主题接管配色 */
 .rich-text-editor :deep(.ql-editor .ql-code-block-container) {
-  background: #1e1e1e;
   border: 1px solid var(--color-border-default);
   border-radius: 6px;
   margin: 4px 0;
