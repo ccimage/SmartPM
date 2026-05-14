@@ -105,7 +105,7 @@ const toolbar = computed(() =>
 )
 
 function syncCodeBlockTheme(root: ParentNode) {
-  root.querySelectorAll('pre.ql-code-block').forEach((el) => {
+  root.querySelectorAll('.ql-code-block-container').forEach((el) => {
     el.classList.add('hljs')
   })
 }
@@ -197,19 +197,20 @@ function handleLoad(event: { instance: any }) {
     }
   })
 
-  if (!props.readonly) {
-    const editorRoot = event.instance.root as HTMLElement
-    const processContainers = () => {
-      syncCodeBlockTheme(editorRoot)
+  const editorRoot = event.instance.root as HTMLElement
+  const processContainers = () => {
+    syncCodeBlockTheme(editorRoot)
+    if (!props.readonly) {
       editorRoot.querySelectorAll('.ql-code-block-container').forEach((el) => {
         mountLanguageSelect(el as HTMLElement)
       })
     }
-    processContainers()
-    domObserver?.disconnect()
-    domObserver = new MutationObserver(processContainers)
-    domObserver.observe(editorRoot, { childList: true, subtree: true })
   }
+
+  processContainers()
+  domObserver?.disconnect()
+  domObserver = new MutationObserver(processContainers)
+  domObserver.observe(editorRoot, { childList: true, subtree: true })
 }
 
 onUnmounted(() => {
@@ -279,7 +280,7 @@ async function handleImageFile(file: File) {
   border: none;
 }
 
-/* 代码块：补齐 .hljs class 后，让 highlight.js 的 vs2015 主题接管配色 */
+/* 代码块：补齐容器 .hljs class，让 highlight.js 的 vs2015 主题接管配色 */
 .rich-text-editor :deep(.ql-editor .ql-code-block-container) {
   border: 1px solid var(--color-border-default);
   border-radius: 6px;
@@ -296,7 +297,7 @@ async function handleImageFile(file: File) {
   overflow-x: auto;
 }
 
-.rich-text-editor :deep(.ql-editor .ql-code-block-container pre.ql-code-block.hljs) {
+.rich-text-editor :deep(.ql-editor .ql-code-block-container.hljs) {
   background: #1e1e1e;
   color: #dcdcdc;
 }
