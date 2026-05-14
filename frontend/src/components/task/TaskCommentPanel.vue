@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { listTaskActivities, type ActivityLog } from '@/api/activity'
 import { createComment, deleteComment, listComments, updateComment, type Comment } from '@/api/comment'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps<{
@@ -100,6 +101,10 @@ function isOwnComment(comment: Comment) {
   return Boolean(currentUserId.value && comment.author.id === currentUserId.value)
 }
 
+function isEmptyHtml(html: string): boolean {
+  return !html || html.replace(/<[^>]*>/g, '').trim() === ''
+}
+
 function getStatusLabel(status: unknown) {
   return typeof status === 'string' ? (statusLabels[status] ?? status) : ''
 }
@@ -167,7 +172,7 @@ async function loadActivities() {
 async function submitComment() {
   const content = newCommentContent.value.trim()
 
-  if (!content || isSubmitting.value) {
+  if (isEmptyHtml(content) || isSubmitting.value) {
     return
   }
 
@@ -202,7 +207,7 @@ function cancelEditing() {
 async function saveEdit(comment: Comment) {
   const content = editCommentContent.value.trim()
 
-  if (!content) {
+  if (isEmptyHtml(content)) {
     return
   }
 
@@ -313,19 +318,16 @@ watch(
             </div>
 
             <div v-if="editingCommentId === comment.id" class="edit-box">
-              <textarea
-                v-model="editCommentContent"
-                class="comment-textarea"
-                rows="3"
-                @keydown.ctrl.enter.prevent="saveEdit(comment)"
-              />
+              <RichTextEditor v-model="editCommentContent" toolbar-preset="minimal" />
               <div class="edit-actions">
-                <Button label="保存" size="small" :disabled="!editCommentContent.trim()" @click="saveEdit(comment)" />
+                <Button label="保存" size="small" :disabled="isEmptyHtml(editCommentContent)" @click="saveEdit(comment)" />
                 <button type="button" class="text-button" @click="cancelEditing">取消</button>
               </div>
             </div>
 
-            <p v-else class="comment-content">{{ comment.content }}</p>
+            <div v-else class="comment-content-editor">
+              <RichTextEditor :model-value="comment.content" :readonly="true" />
+            </div>
           </div>
         </article>
       </div>
@@ -333,17 +335,16 @@ watch(
       <p v-if="commentErrorMessage" class="inline-error">{{ commentErrorMessage }}</p>
 
       <div class="composer">
-        <textarea
+        <RichTextEditor
           v-model="newCommentContent"
-          class="comment-textarea"
           placeholder="添加评论..."
-          @keydown.ctrl.enter.prevent="submitComment"
+          toolbar-preset="minimal"
         />
         <div class="composer-actions">
           <Button
             label="发送"
             size="small"
-            :disabled="isSubmitting || !newCommentContent.trim()"
+            :disabled="isSubmitting || isEmptyHtml(newCommentContent)"
             @click="submitComment"
           />
         </div>
@@ -498,31 +499,27 @@ watch(
   color: rgb(185 28 28);
 }
 
-.comment-content {
+.comment-content-editor {
   margin: 3px 0 0;
   color: var(--color-text-primary);
   font-size: 14px;
   line-height: 1.55;
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
 }
 
-.comment-textarea {
-  width: 100%;
-  min-height: 72px;
-  min-width: 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
-  background: var(--color-bg-panel);
-  color: var(--color-text-primary);
-  font: inherit;
-  padding: 8px;
-  resize: vertical;
+.comment-content-editor :deep(.rich-text-editor) {
+  border: none;
+  background: transparent;
 }
 
-.comment-textarea:focus {
-  border-color: var(--color-primary);
-  outline: none;
+.comment-content-editor :deep(.ql-container) {
+  border: none;
+  min-height: unset;
+}
+
+.comment-content-editor :deep(.ql-editor) {
+  min-height: unset;
+  padding: 0;
 }
 
 .composer,
