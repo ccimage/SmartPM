@@ -531,23 +531,24 @@ watch(workspaceId, () => {
       </section>
     </div>
 
-    <div v-if="selectedTask" class="drawer-backdrop" @click.self="closeTask">
+    <div v-if="selectedTask" class="drawer-backdrop">
       <aside class="task-drawer" aria-label="Task details">
         <header class="drawer-header">
           <div>
-            <p class="drawer-eyebrow">{{ statusLabels[selectedTask.status] }}</p>
-            <InputText v-model="detailForm.title" class="title-input" fluid />
+            <p class="drawer-eyebrow">看板: {{ statusLabels[selectedTask.status] }}</p>
           </div>
-          <Button
-            icon="pi pi-times"
-            text
-            rounded
-            aria-label="Close task details"
-            class="close-button"
-            @click="closeTask"
-          />
+          <div class="close-button-container">
+              <Button
+                icon="pi pi-times"
+                text
+                rounded
+                aria-label="Close task details"
+                class="close-button"
+                @click="closeTask"
+              />
+          </div>
         </header>
-
+        <InputText v-model="detailForm.title" class="title-input" fluid />
         <div class="drawer-fields">
           <TaskFieldRow icon="circle-half-stroke" label="状态">
             <Select
@@ -961,5 +962,10 @@ button:disabled {
   .drawer-actions {
     flex-direction: column;
   }
+}
+.close-button-container {
+  position: relative;
+  right: -14px;
+  top: -14px;
 }
 </style>

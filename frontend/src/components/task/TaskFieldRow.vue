@@ -7,10 +7,10 @@ defineProps<{
 
 <template>
   <div class="field-row">
-    <span class="field-icon" aria-hidden="true">
+    <span class="field-icon" aria-hidden="true" :title="label">
       <i :class="'fa-solid fa-' + icon" />
     </span>
-    <span v-if="label" class="field-label">{{ label }}</span>
+    <span v-if="false" class="field-label">{{ label }}</span>
     <div class="field-content">
       <slot />
     </div>
