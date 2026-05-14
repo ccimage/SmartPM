@@ -18,6 +18,7 @@ import {
 import { getProject } from '@/api/project'
 import { useAppStore } from '@/stores/app'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import TaskCommentPanel from '@/components/task/TaskCommentPanel.vue'
 import TaskFieldRow from '@/components/task/TaskFieldRow.vue'
 import TagSelector from '@/components/task/TagSelector.vue'
 
@@ -585,6 +586,8 @@ watch(workspaceId, () => {
           </TaskFieldRow>
         </div>
 
+        <TaskCommentPanel v-if="selectedTask" :task-id="selectedTask.id" class="drawer-comment-panel" />
+
         <p v-if="drawerErrorMessage" class="form-error">{{ drawerErrorMessage }}</p>
 
         <footer class="drawer-actions">
@@ -923,6 +926,12 @@ button:disabled {
 .drawer-fields {
   display: grid;
   gap: 14px;
+}
+
+.drawer-comment-panel {
+  margin-top: 16px;
+  border-top: 1px solid var(--color-border-default);
+  padding-top: 16px;
 }
 
 .drawer-actions {

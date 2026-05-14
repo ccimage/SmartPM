@@ -83,7 +83,6 @@ export class ActivityService implements OnModuleInit, OnModuleDestroy {
     return this.listActivities({
       projectId: task.projectId,
       query,
-      fixedEntityType: 'task',
       fixedEntityId: taskId,
     });
   }
@@ -146,7 +145,7 @@ export class ActivityService implements OnModuleInit, OnModuleDestroy {
       qb.andWhere('activity.entity_id = :queryEntityId', { queryEntityId: params.query.entityId });
     }
 
-    qb.orderBy('activity.created_at', 'DESC').skip((page - 1) * limit).take(limit);
+    qb.orderBy('activity.createdAt', 'DESC').skip((page - 1) * limit).take(limit);
 
     const [activities, total] = await qb.getManyAndCount();
 

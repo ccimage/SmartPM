@@ -25,6 +25,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
     TagSelector: typeof import('./components/task/TagSelector.vue')['default']
+    TaskCommentPanel: typeof import('./components/task/TaskCommentPanel.vue')['default']
     TaskFieldRow: typeof import('./components/task/TaskFieldRow.vue')['default']
     UserAvatar: typeof import('./components/common/UserAvatar.vue')['default']
     UserMenu: typeof import('./components/layout/UserMenu.vue')['default']

@@ -138,11 +138,6 @@ export class CommentService {
       .map((u) => ({ id: u.id, name: u.name }));
   }
 
-  private async getWorkspaceId(taskId: string): Promise<string> {
-    const task = await this.taskService.loadTaskForComment(taskId);
-    return this.projectService.getProjectWorkspaceId(task.projectId);
-  }
-
   private publishActivity(params: {
     taskId: string;
     userId: string;
@@ -151,17 +146,20 @@ export class CommentService {
     entityId: string;
     extra?: Record<string, unknown>;
   }) {
-    void this.getWorkspaceId(params.taskId)
-      .then((workspaceId) =>
-        this.publisher.publish({
+    void this.taskService
+      .loadTaskForComment(params.taskId)
+      .then(async (task) => {
+        const workspaceId = await this.projectService.getProjectWorkspaceId(task.projectId);
+        return this.publisher.publish({
           workspaceId,
+          projectId: task.projectId,
           userId: params.userId,
           action: params.action,
           entityType: params.entityType,
           entityId: params.entityId,
           extra: params.extra,
-        }),
-      )
+        });
+      })
       .catch(() => {});
   }
 }
