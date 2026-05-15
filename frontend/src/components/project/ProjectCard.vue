@@ -12,6 +12,7 @@ const emit = defineEmits<{
   click: []
   updated: [project: Project]
   deleted: []
+  edit: [project: Project]
 }>()
 
 const moreRef = ref<HTMLElement | null>(null)
@@ -63,6 +64,11 @@ async function handleDelete() {
   showMore.value = false
   emit('deleted')
 }
+
+function handleEdit() {
+  showMore.value = false
+  emit('edit', props.project)
+}
 </script>
 
 <template>
@@ -95,6 +101,10 @@ async function handleDelete() {
             <button type="button" class="menu-item delete-item" @click="handleDelete">
               <i class="fa-solid fa-trash" />
               <span>删除</span>
+            </button>
+            <button type="button" class="menu-item edit-item" @click="handleEdit">
+              <i class="fa-solid fa-pen" />
+              <span>编辑</span>
             </button>
           </div>
         </Transition>
@@ -184,7 +194,7 @@ async function handleDelete() {
 }
 
 .card-style-picker :deep(.picker-panel) {
-  right: 0;
+  right: auto;
   left: auto;
   background: var(--color-bg-panel);
 }
@@ -225,6 +235,11 @@ async function handleDelete() {
 }
 
 .delete-item:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
+}
+
+.edit-item:hover {
   background: var(--color-primary-soft);
   color: var(--color-primary-text);
 }
