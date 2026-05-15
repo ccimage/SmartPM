@@ -82,7 +82,7 @@ const detailForm = reactive({
   status: 'todo' as TaskStatus,
   priority: 'normal' as TaskPriority,
   description: '',
-  dueDate: '',
+  dueDate: undefined as Date | undefined,
 })
 
 const projectId = computed(() => {
@@ -207,7 +207,7 @@ async function openTask(task: Task) {
   detailForm.status = task.status
   detailForm.priority = task.priority
   detailForm.description = ''
-  detailForm.dueDate = task.dueDate ? task.dueDate.slice(0, 10) : ''
+  detailForm.dueDate = task.dueDate ? new Date(task.dueDate): undefined
   detailTagIds.value = []
 
   try {
@@ -270,7 +270,7 @@ async function saveTask() {
     status: detailForm.status,
     priority: detailForm.priority,
     description: detailForm.description.trim(),
-    dueDate: detailForm.dueDate || null,
+    dueDate: detailForm.dueDate?.toLocaleString() || undefined,
   }
 
   if (!payload.title) {
