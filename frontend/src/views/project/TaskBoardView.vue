@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   createTask,
@@ -226,6 +226,12 @@ function closeTask() {
   drawerErrorMessage.value = ''
 }
 
+function handleGlobalKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && selectedTask.value) {
+    closeTask()
+  }
+}
+
 function updateTaskInList(task: Task) {
   tasks.value = tasks.value.map((item) => (item.id === task.id ? task : item))
 
@@ -391,7 +397,12 @@ function formatDueDate(dueDate?: string | null) {
 }
 
 onMounted(async () => {
+  window.addEventListener('keydown', handleGlobalKeydown)
   await Promise.all([loadProjectContext(), loadTasks(), loadTags()])
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
 })
 
 watch(projectId, async () => {
@@ -928,9 +939,16 @@ button:disabled {
 }
 
 .drawer-header {
+  position: sticky;
+  top: -24px;
+  z-index: 2;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
+  margin: -24px -24px 0;
+  padding: 24px 24px 12px;
+  background: var(--color-bg-panel);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .drawer-eyebrow {
