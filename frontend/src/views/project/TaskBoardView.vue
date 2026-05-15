@@ -538,16 +538,16 @@ watch(workspaceId, () => {
           <div>
             <p class="drawer-eyebrow">看板: {{ statusLabels[selectedTask.status] }}</p>
           </div>
-          <div class="close-button-container">
-              <Button
-                icon="pi pi-times"
-                text
-                rounded
-                aria-label="Close task details"
-                class="close-button"
-                @click="closeTask"
-              />
-          </div>
+	          <div class="close-button-container">
+	              <Button
+	                icon="pi pi-times"
+	                text
+	                rounded
+	                aria-label="Close task details"
+	                class="close-button"
+	                @click="closeTask"
+	              />
+	          </div>
         </header>
         <InputText v-model="detailForm.title" class="title-input" fluid />
         <div class="drawer-fields">
@@ -833,21 +833,45 @@ h3 {
   color: var(--color-primary-text);
   font-weight: 700;
   padding: 10px 12px;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.add-task-button:hover:not(:disabled) {
+  border-color: var(--color-primary-hover);
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-bg-panel));
+  color: var(--color-primary);
 }
 
 .add-actions button {
   border: 0;
   border-radius: 8px;
   background: var(--color-primary);
-  color: var(--color-bg-panel);
+  color: #ffffff;
   font-weight: 700;
   padding: 10px 14px;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.add-actions button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
 }
 
 .ghost-button {
   border: 1px solid var(--color-border-default) !important;
   background: var(--color-bg-panel) !important;
   color: var(--color-text-secondary) !important;
+}
+
+.ghost-button:hover:not(:disabled) {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-text) !important;
 }
 
 button:disabled {
@@ -939,6 +963,39 @@ button:disabled {
   gap: 10px;
   margin-top: auto;
   padding-top: 8px;
+}
+
+.primary-button {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.primary-button:hover:not(:disabled){
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+}
+
+.danger-button {
+  border-color: var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.danger-button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
+}
+
+.close-button{
+  color: var(--color-primary);
+}
+
+.close-button:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
 }
 
 @media (max-width: 980px) {

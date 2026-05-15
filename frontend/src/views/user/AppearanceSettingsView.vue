@@ -18,7 +18,7 @@ const form = reactive({
   backgroundOverlay: 'medium' as 'light' | 'medium' | 'strong',
   useSystemTheme: false,
   backgroundImageUrl: null as string | null,
-  backgroundImageFileId: null as string | null,
+  backgroundImageFileId: undefined as string | null | undefined,
 })
 
 const overlayOptions = [
@@ -37,7 +37,7 @@ function syncFromStore() {
   form.backgroundOverlay = themeStore.resolvedPreferences.backgroundOverlay
   form.useSystemTheme = themeStore.resolvedPreferences.useSystemTheme
   form.backgroundImageUrl = themeStore.resolvedPreferences.backgroundImageUrl
-  form.backgroundImageFileId = null
+  form.backgroundImageFileId = undefined
 }
 
 function getErrorMessage(error: unknown) {
@@ -90,11 +90,17 @@ async function handleSubmit() {
   successMessage.value = ''
 
   try {
-    await themeStore.savePreferences({
+    const payload = {
       themeColor: form.useSystemTheme ? null : form.themeColor,
-      backgroundImageFileId: form.backgroundImageFileId,
       backgroundOverlay: form.backgroundOverlay,
       useSystemTheme: form.useSystemTheme,
+      ...(form.backgroundImageFileId !== undefined
+        ? { backgroundImageFileId: form.backgroundImageFileId }
+        : {}),
+    }
+
+    await themeStore.savePreferences({
+      ...payload,
     })
     successMessage.value = 'Appearance settings saved.'
     syncFromStore()

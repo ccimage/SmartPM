@@ -346,6 +346,7 @@ watch(
             size="small"
             :disabled="isSubmitting || isEmptyHtml(newCommentContent)"
             @click="submitComment"
+            class="primary-button"
           />
         </div>
       </div>
@@ -577,5 +578,17 @@ watch(
   color: rgb(185 28 28);
   font-size: 13px;
   padding: 8px 10px;
+}
+
+.primary-button {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.primary-button:hover:not(:disabled){
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
 }
 </style>

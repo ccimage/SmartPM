@@ -178,7 +178,13 @@ watch(workspaceId, loadProjects)
       </div>
 
       <div class="header-actions">
-        <Button type="button" label="创建项目" icon="fa-solid fa-plus" @click="openCreateDialog" />
+        <Button
+          type="button"
+          label="创建项目"
+          icon="fa-solid fa-plus"
+          class="project-create-button"
+          @click="openCreateDialog"
+        />
 
         <div class="view-toggle">
           <button
@@ -295,8 +301,20 @@ watch(workspaceId, loadProjects)
         <p v-if="dialogErrorMessage" class="error-message dialog-error">{{ dialogErrorMessage }}</p>
 
         <div class="dialog-actions">
-          <Button type="button" label="取消" severity="secondary" text @click="closeProjectDialog" />
-          <Button type="submit" :label="submitLabel" :disabled="!canSubmit || isSubmitting" />
+          <Button
+            type="button"
+            label="取消"
+            severity="secondary"
+            text
+            class="dialog-secondary-button"
+            @click="closeProjectDialog"
+          />
+          <Button
+            type="submit"
+            :label="submitLabel"
+            :disabled="!canSubmit || isSubmitting"
+            class="dialog-primary-button"
+          />
         </div>
       </form>
     </Dialog>
@@ -319,6 +337,29 @@ watch(workspaceId, loadProjects)
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.project-create-button,
+.dialog-primary-button {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.project-create-button:hover:not(:disabled),
+.dialog-primary-button:hover:not(:disabled) {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+}
+
+.dialog-secondary-button {
+  color: var(--color-primary);
+}
+
+.dialog-secondary-button:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
 }
 
 .view-toggle {

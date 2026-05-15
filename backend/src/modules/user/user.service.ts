@@ -102,6 +102,7 @@ export class UserService implements OnModuleInit {
   }
 
   async updatePreferences(userId: string, dto: UpdatePreferencesDto) {
+    const existingPreference = await this.preferenceRepo.findOne({ where: { userId } });
     let backgroundImageUrl: string | null | undefined;
 
     if (dto.backgroundImageFileId !== undefined) {
@@ -116,8 +117,9 @@ export class UserService implements OnModuleInit {
       }
     }
 
-    const preference = await this.preferenceRepo.save(
+    await this.preferenceRepo.save(
       this.preferenceRepo.create({
+        ...existingPreference,
         userId,
         ...(dto.themeColor !== undefined ? { themeColor: dto.themeColor } : {}),
         ...(dto.backgroundImageFileId !== undefined
@@ -133,6 +135,7 @@ export class UserService implements OnModuleInit {
       }),
     );
 
+    const preference = await this.preferenceRepo.findOneOrFail({ where: { userId } });
     return preference.toProfile();
   }
 

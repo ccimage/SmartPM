@@ -136,9 +136,19 @@ button {
 
 .create-form button {
   border: 0;
-  background: #4f46e5;
+  background: var(--color-primary);
   color: #ffffff;
   padding: 10px 14px;
+  transition:
+    background 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.create-form button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-primary) 28%, transparent);
+  transform: translateY(-1px);
 }
 
 button:disabled {
